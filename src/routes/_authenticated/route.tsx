@@ -37,8 +37,10 @@ export const Route = createFileRoute("/_authenticated")({
       throw redirect({ to: "/auth" });
     }
 
-    // 3. Resolve roles (for backward compatibility)
-    const roles = [user.role];
+    // 3. Resolve roles (for backward compatibility).
+    // The business owner account has public.users.role = 'distributor';
+    // the access layer treats it as a full admin.
+    const roles = [user.role === "distributor" ? "admin" : user.role];
 
     // 4. Retailers never belong in the staff app.
     if (isRetailerRole(roles)) throw redirect({ to: "/retailer" });

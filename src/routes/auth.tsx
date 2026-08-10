@@ -115,6 +115,9 @@ function LoginPage() {
         category: p.category,
       }));
 
+      // The authenticated layout guards routes with this key
+      localStorage.setItem("creamroute_permissions", JSON.stringify(userPermissions));
+
       // Store user data
       localStorage.setItem("creamroute_user", JSON.stringify({
         ...user,
