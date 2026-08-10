@@ -27,7 +27,24 @@ export const Route = createFileRoute("/_authenticated")({
 
     const user = JSON.parse(userStr);
     const distributor = JSON.parse(distributorStr);
-    const permissions = JSON.parse(localStorage.getItem("creamroute_permissions") || "[]");
+    let permissions = JSON.parse(localStorage.getItem("creamroute_permissions") || "[]");
+
+    // Self-heal: older logins predate the permissions key; refetch if empty.
+    if (!Array.isArray(permissions) || permissions.length === 0) {
+      try {
+        const { data } = await supabase.rpc("get_user_permissions", {
+          _user_id: user.id,
+        });
+        permissions = (data ?? []).map((p: any) => ({
+          name: p.permission_name,
+          label: p.permission_label,
+          category: p.category,
+        }));
+        localStorage.setItem("creamroute_permissions", JSON.stringify(permissions));
+      } catch (err) {
+        console.warn("[auth] failed to refetch permissions:", err);
+      }
+    }
 
     // 2. Check account status
     if (user.status !== "active") {
