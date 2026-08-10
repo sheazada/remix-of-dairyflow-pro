@@ -33,13 +33,10 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
 
 const createUserSchema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  email: z.string().email("Invalid email address"),
   mobile: z.string().min(10, "Mobile number must be at least 10 digits").optional().or(z.literal("")),
   role: z.enum(["manager", "accountant", "warehouse", "salesman", "delivery_boy", "retailer"]),
   password: z.string().min(8, "Password must be at least 8 characters"),
-}).refine(data => data.email || data.mobile, {
-  message: "Email or mobile number is required",
-  path: ["email"],
 });
 
 type CreateUserForm = z.infer<typeof createUserSchema>;
@@ -75,36 +72,81 @@ function UsersPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth/create-user`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          ...data,
-          distributor_id: localStorage.getItem("creamroute_distributor_id"),
-          created_by: localStorage.getItem("creamroute_user_id"),
-          ip_address: "client-side",
-          user_agent: navigator.userAgent,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        toast.error(result.error || "Failed to create user");
+      const distributor = JSON.parse(localStorage.getItem("creamroute_distributor") || "null");
+      if (!distributor?.id) {
+        toast.error("Missing distributor context. Sign in again.");
         return;
       }
 
-      toast.success(`User created successfully! ${data.email ? "Verification email sent." : ""}`);
+      // public.users.role -> app_role (used by user_roles / RLS helpers)
+      const appRoleMap: Record<
+        CreateUserForm["role"],
+        "manager" | "salesperson" | "driver" | "helper" | "retailer"
+      > = {
+        manager: "manager",
+        accountant: "manager",
+        salesman: "salesperson",
+        delivery_boy: "driver",
+        warehouse: "helper",
+        retailer: "retailer",
+      };
+
+      // 1) Auth account (Supabase Auth). Requires email.
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: { data: { full_name: data.full_name, role: data.role } },
+      });
+      if (authError || !authData.user) {
+        toast.error(authError?.message || "Failed to create auth account");
+        return;
+      }
+      const needsConfirm = (authData.user.identities?.length ?? 0) === 0;
+      const uid = authData.user.id;
+
+      // 2) App user row (id must match auth id for RLS)
+      const { error: userError } = await supabase.from("users").insert({
+        id: uid,
+        distributor_id: distributor.id,
+        email: data.email,
+        mobile: data.mobile || null,
+        password_hash: "supabase-managed",
+        full_name: data.full_name,
+        role: data.role,
+        status: needsConfirm ? "pending_verification" : "active",
+        email_verified: !needsConfirm,
+        created_by: JSON.parse(localStorage.getItem("creamroute_user") || "null")?.id ?? null,
+      });
+      if (userError) {
+        toast.error(`Auth account created, but app user failed: ${userError.message}`);
+        return;
+      }
+
+      // 3) App role for RLS helpers (is_staff / can_manage_sales / ...)
+      await supabase.from("user_roles").insert({ user_id: uid, role: appRoleMap[data.role] });
+
+      // 4) Retailers get a customer record linked to their login (retailer portal)
+      if (data.role === "retailer") {
+        const { error: custError } = await supabase.from("customers").insert({
+          name: data.full_name,
+          shop_name: data.full_name,
+          mobile: data.mobile || null,
+          email: data.email,
+          user_id: uid,
+          distributor_id: distributor.id,
+          status: "active",
+        });
+        if (custError) toast.error(`User created, but customer link failed: ${custError.message}`);
+      }
+
+      toast.success(
+        needsConfirm
+          ? "User created. They must confirm their email before first login."
+          : `User created! ${data.email} can sign in now.`
+      );
       reset();
       setIsDialogOpen(false);
-      
-      // Refresh user list
       window.location.reload();
-
     } catch (error) {
       toast.error("Network error");
     } finally {
