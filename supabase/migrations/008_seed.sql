@@ -25,7 +25,7 @@ INSERT INTO auth.users
    email_change_token_current, email_change_confirm_status,
    reauthentication_token, is_sso_user, is_anonymous)
 VALUES
-  (NULL, '00000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated',
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated',
    'admin@creamroute.com',
    extensions.crypt('Admin@1234', extensions.gen_salt('bf', 10)),
    now(), '', '', '', '',
