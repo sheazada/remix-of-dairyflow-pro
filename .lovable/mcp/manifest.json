@@ -1,0 +1,271 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://ufxadissmzvivhmlqrhl.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "dairy-erp-mcp",
+      "version": "0.1.0",
+      "title": "Dairy Distribution ERP"
+    },
+    "tools": [
+      {
+        "name": "list_customers",
+        "title": "List customers (retail shops)",
+        "description": "List retail shop customers visible to the signed-in user, with optional name search and dues filter. Returns id, name, phone, area, and outstanding balance.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "search": {
+              "description": "Filter by customer name (case-insensitive contains).",
+              "type": "string"
+            },
+            "with_dues_only": {
+              "description": "Only include customers with outstanding > 0.",
+              "type": "boolean"
+            },
+            "limit": {
+              "description": "Max rows (default 50).",
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_products",
+        "title": "List products",
+        "description": "List dairy products in the catalog with optional name search. Returns id, name, sku, unit, price, gst rate, hsn.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "search": {
+              "description": "Filter by product name (case-insensitive contains).",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max rows (default 100).",
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_recent_invoices",
+        "title": "List recent invoices",
+        "description": "List recent GST invoices visible to the signed-in user, optionally filtered by customer or date range.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "customer_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "from_date": {
+              "description": "ISO date (YYYY-MM-DD) inclusive.",
+              "type": "string"
+            },
+            "to_date": {
+              "description": "ISO date (YYYY-MM-DD) inclusive.",
+              "type": "string"
+            },
+            "limit": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "daily_demand",
+        "title": "Daily pickup demand",
+        "description": "Aggregate product quantities to pick up from Sudha Dairy for a given date, based on confirmed orders and invoices for that day.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "description": "ISO date (YYYY-MM-DD). Defaults to today if omitted."
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_pending_deliveries",
+        "title": "List pending deliveries",
+        "description": "List deliveries not yet marked delivered, optionally filtered by date or route.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "date": {
+              "description": "ISO date (YYYY-MM-DD).",
+              "type": "string"
+            },
+            "route_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "limit": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "mark_delivery_collected",
+        "title": "Mark delivery collected / delivered",
+        "description": "Update a delivery stop with collection details. Sets status (default 'delivered'), delivered_at (now for delivered/partially_delivered), receiver name, and optionally records a payment collected on delivery. Use list_pending_deliveries first to get the delivery id.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "delivery_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Delivery id from list_pending_deliveries."
+            },
+            "status": {
+              "description": "Defaults to 'delivered'.",
+              "type": "string",
+              "enum": [
+                "delivered",
+                "partially_delivered",
+                "failed",
+                "en_route"
+              ]
+            },
+            "received_by": {
+              "description": "Name of person who received the goods.",
+              "type": "string"
+            },
+            "notes": {
+              "type": "string"
+            },
+            "collected_amount": {
+              "description": "Amount collected from the shop.",
+              "type": "number",
+              "minimum": 0
+            },
+            "collected_mode": {
+              "description": "Payment mode when collected_amount > 0.",
+              "type": "string",
+              "enum": [
+                "cash",
+                "upi",
+                "bank",
+                "cheque",
+                "credit"
+              ]
+            },
+            "reference": {
+              "description": "UPI/txn/cheque reference when applicable.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "delivery_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "upload_pod_proof",
+        "title": "Upload proof of delivery (POD)",
+        "description": "Upload a POD photo/PDF for a delivery stop into the private 'pod' bucket and save its path on the delivery. Accepts a base64-encoded file up to 8 MB. Use list_pending_deliveries to find the delivery id.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "delivery_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Delivery id from list_pending_deliveries."
+            },
+            "content_base64": {
+              "type": "string",
+              "description": "File bytes, base64-encoded (no data: prefix)."
+            },
+            "content_type": {
+              "type": "string",
+              "description": "MIME type: image/jpeg, image/png, image/webp, image/heic, or application/pdf."
+            },
+            "signature_note": {
+              "description": "Optional signature name/note to store alongside the POD.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "delivery_id",
+            "content_base64",
+            "content_type"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
