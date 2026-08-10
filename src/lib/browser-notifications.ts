@@ -2,10 +2,22 @@
 // Handles service worker registration, push subscription, and permission management
 
 import { toast } from "sonner";
+import { fetchVapidPublicKey } from "./vapid.functions";
 
-// VAPID public key (safe to expose; the private key is stored as a backend secret)
-const VAPID_PUBLIC_KEY =
-  "BFJlVxBxqlCPXZbxtHRrcdSw95lP_BBSrxBVy3bpvTxtVMrEOEoEKYzp9Ghtjnd7bRKXy33etMkQb2uG00Ndyso";
+// VAPID public key is served from the backend secret (safe to expose in the browser)
+let cachedVapidPublicKey: string | null = null;
+
+async function getVapidPublicKey(): Promise<string | null> {
+  if (cachedVapidPublicKey) return cachedVapidPublicKey;
+  try {
+    const res = await fetchVapidPublicKey();
+    cachedVapidPublicKey = res.publicKey ?? null;
+    return cachedVapidPublicKey;
+  } catch (error) {
+    console.error("[Notifications] Failed to load VAPID public key:", error);
+    return null;
+  }
+}
 
 // Check if browser supports push notifications
 export function isPushSupported(): boolean {
@@ -71,11 +83,17 @@ export async function getPushSubscription(): Promise<PushSubscription | null> {
 // Subscribe to push notifications
 export async function subscribeToPush(): Promise<PushSubscription | null> {
   const registration = await navigator.serviceWorker.ready;
-  
+
+  const vapidPublicKey = await getVapidPublicKey();
+  if (!vapidPublicKey) {
+    console.warn("[Notifications] VAPID public key not configured");
+    return null;
+  }
+
   try {
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
     });
 
     console.log("[Notifications] Subscribed to push:", subscription);
