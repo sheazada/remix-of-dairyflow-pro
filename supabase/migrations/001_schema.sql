@@ -3,38 +3,47 @@
 -- ENUM TYPES
 -- ============================================================
 
-CREATE TYPE public.app_role AS ENUM (
-    'admin',
-    'manager',
-    'salesperson',
-    'driver',
-    'helper',
-    'retailer'
-);
+DO $$ BEGIN
+  CREATE TYPE public.app_role AS ENUM (
+      'admin',
+      'manager',
+      'salesperson',
+      'driver',
+      'helper',
+      'retailer'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 
-CREATE TYPE public.notification_channel AS ENUM (
-    'email',
-    'sms',
-    'whatsapp'
-);
+DO $$ BEGIN
+  CREATE TYPE public.notification_channel AS ENUM (
+      'email',
+      'sms',
+      'whatsapp'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 
-CREATE TYPE public.notification_status AS ENUM (
-    'queued',
-    'sending',
-    'sent',
-    'failed',
-    'suppressed',
-    'cancelled'
-);
+DO $$ BEGIN
+  CREATE TYPE public.notification_status AS ENUM (
+      'queued',
+      'sending',
+      'sent',
+      'failed',
+      'suppressed',
+      'cancelled'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 
 -- ============================================================
 -- TABLES
 -- ============================================================
 
-CREATE TABLE public.notification_logs (
+CREATE TABLE IF NOT EXISTS public.notification_logs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     channel public.notification_channel NOT NULL,
     status public.notification_status DEFAULT 'queued'::public.notification_status NOT NULL,
@@ -62,7 +71,7 @@ CREATE TABLE public.notification_logs (
 );
 
 
-CREATE TABLE public.access_audit_logs (
+CREATE TABLE IF NOT EXISTS public.access_audit_logs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     event_type text NOT NULL,
     user_id uuid,
@@ -85,7 +94,7 @@ CREATE TABLE public.access_audit_logs (
 );
 
 
-CREATE TABLE public.app_settings (
+CREATE TABLE IF NOT EXISTS public.app_settings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     key text NOT NULL,
     value text NOT NULL,
@@ -94,7 +103,7 @@ CREATE TABLE public.app_settings (
 );
 
 
-CREATE TABLE public.audit_logs (
+CREATE TABLE IF NOT EXISTS public.audit_logs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     distributor_id uuid NOT NULL,
     user_id uuid,
@@ -109,7 +118,7 @@ CREATE TABLE public.audit_logs (
 );
 
 
-CREATE TABLE public.collection_allocations (
+CREATE TABLE IF NOT EXISTS public.collection_allocations (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     driver_collection_id uuid NOT NULL,
     customer_id uuid NOT NULL,
@@ -122,7 +131,7 @@ CREATE TABLE public.collection_allocations (
 );
 
 
-CREATE TABLE public.crate_transactions (
+CREATE TABLE IF NOT EXISTS public.crate_transactions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     crate_type_id uuid NOT NULL,
     retailer_id uuid NOT NULL,
@@ -139,7 +148,7 @@ CREATE TABLE public.crate_transactions (
 );
 
 
-CREATE TABLE public.crate_types (
+CREATE TABLE IF NOT EXISTS public.crate_types (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     description text,
@@ -148,7 +157,7 @@ CREATE TABLE public.crate_types (
 );
 
 
-CREATE TABLE public.customers (
+CREATE TABLE IF NOT EXISTS public.customers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     shop_name text,
@@ -176,7 +185,7 @@ CREATE TABLE public.customers (
 );
 
 
-CREATE TABLE public.invoice_items (
+CREATE TABLE IF NOT EXISTS public.invoice_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     invoice_id uuid NOT NULL,
     product_id uuid NOT NULL,
@@ -194,7 +203,7 @@ CREATE TABLE public.invoice_items (
 );
 
 
-CREATE TABLE public.invoices (
+CREATE TABLE IF NOT EXISTS public.invoices (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     invoice_no text NOT NULL,
     customer_id uuid NOT NULL,
@@ -219,7 +228,7 @@ CREATE TABLE public.invoices (
 );
 
 
-CREATE TABLE public.purchase_items (
+CREATE TABLE IF NOT EXISTS public.purchase_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     purchase_id uuid NOT NULL,
     product_id uuid NOT NULL,
@@ -236,7 +245,7 @@ CREATE TABLE public.purchase_items (
 );
 
 
-CREATE TABLE public.purchases (
+CREATE TABLE IF NOT EXISTS public.purchases (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     bill_no text NOT NULL,
     supplier_id uuid NOT NULL,
@@ -254,7 +263,7 @@ CREATE TABLE public.purchases (
 );
 
 
-CREATE TABLE public.deliveries (
+CREATE TABLE IF NOT EXISTS public.deliveries (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     invoice_id uuid,
     order_id uuid,
@@ -279,7 +288,7 @@ CREATE TABLE public.deliveries (
 );
 
 
-CREATE TABLE public.delivery_cycles (
+CREATE TABLE IF NOT EXISTS public.delivery_cycles (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     cycle_code text NOT NULL,
     order_date date NOT NULL,
@@ -295,7 +304,7 @@ CREATE TABLE public.delivery_cycles (
 );
 
 
-CREATE TABLE public.delivery_runs (
+CREATE TABLE IF NOT EXISTS public.delivery_runs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     route_id uuid NOT NULL,
     run_date date DEFAULT CURRENT_DATE NOT NULL,
@@ -322,7 +331,7 @@ CREATE TABLE public.delivery_runs (
 );
 
 
-CREATE TABLE public.demand_consolidation_items (
+CREATE TABLE IF NOT EXISTS public.demand_consolidation_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     demand_consolidation_id uuid NOT NULL,
     product_id uuid,
@@ -338,7 +347,7 @@ CREATE TABLE public.demand_consolidation_items (
 );
 
 
-CREATE TABLE public.demand_consolidations (
+CREATE TABLE IF NOT EXISTS public.demand_consolidations (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     consolidation_no text NOT NULL,
     delivery_cycle_id uuid NOT NULL,
@@ -354,14 +363,14 @@ CREATE TABLE public.demand_consolidations (
 );
 
 
-CREATE TABLE public.demand_source_orders (
+CREATE TABLE IF NOT EXISTS public.demand_source_orders (
     demand_consolidation_id uuid NOT NULL,
     order_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
-CREATE TABLE public.distributors (
+CREATE TABLE IF NOT EXISTS public.distributors (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     business_name text NOT NULL,
     legal_name text,
@@ -385,7 +394,7 @@ CREATE TABLE public.distributors (
 );
 
 
-CREATE TABLE public.driver_collections (
+CREATE TABLE IF NOT EXISTS public.driver_collections (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     collection_no text NOT NULL,
     driver_name text,
@@ -404,7 +413,7 @@ CREATE TABLE public.driver_collections (
 );
 
 
-CREATE TABLE public.edit_audit_logs (
+CREATE TABLE IF NOT EXISTS public.edit_audit_logs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     record_type text NOT NULL,
     record_id uuid NOT NULL,
@@ -420,7 +429,7 @@ CREATE TABLE public.edit_audit_logs (
 );
 
 
-CREATE TABLE public.email_verification_tokens (
+CREATE TABLE IF NOT EXISTS public.email_verification_tokens (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     token text NOT NULL,
@@ -431,7 +440,7 @@ CREATE TABLE public.email_verification_tokens (
 );
 
 
-CREATE TABLE public.expense_categories (
+CREATE TABLE IF NOT EXISTS public.expense_categories (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     color text DEFAULT '#2563eb'::text NOT NULL,
@@ -442,7 +451,7 @@ CREATE TABLE public.expense_categories (
 );
 
 
-CREATE TABLE public.expenses (
+CREATE TABLE IF NOT EXISTS public.expenses (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     category_id uuid NOT NULL,
     amount numeric(12,2) DEFAULT 0 NOT NULL,
@@ -457,7 +466,7 @@ CREATE TABLE public.expenses (
 );
 
 
-CREATE TABLE public.gps_audit_logs (
+CREATE TABLE IF NOT EXISTS public.gps_audit_logs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     event_type text NOT NULL,
     success boolean NOT NULL,
@@ -478,7 +487,7 @@ CREATE TABLE public.gps_audit_logs (
 );
 
 
-CREATE TABLE public.inventory_movements (
+CREATE TABLE IF NOT EXISTS public.inventory_movements (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     product_id uuid NOT NULL,
     movement_type text NOT NULL,
@@ -491,7 +500,7 @@ CREATE TABLE public.inventory_movements (
 );
 
 
-CREATE TABLE public.invoice_revisions (
+CREATE TABLE IF NOT EXISTS public.invoice_revisions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     invoice_id uuid NOT NULL,
     revision_number integer DEFAULT 1 NOT NULL,
@@ -506,7 +515,7 @@ CREATE TABLE public.invoice_revisions (
 );
 
 
-CREATE TABLE public.login_history (
+CREATE TABLE IF NOT EXISTS public.login_history (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     distributor_id uuid NOT NULL,
@@ -523,7 +532,7 @@ CREATE TABLE public.login_history (
 );
 
 
-CREATE TABLE public.notifications (
+CREATE TABLE IF NOT EXISTS public.notifications (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     type text DEFAULT 'general'::text NOT NULL,
@@ -535,7 +544,7 @@ CREATE TABLE public.notifications (
 );
 
 
-CREATE TABLE public.order_items (
+CREATE TABLE IF NOT EXISTS public.order_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     order_id uuid NOT NULL,
     product_id uuid NOT NULL,
@@ -546,7 +555,7 @@ CREATE TABLE public.order_items (
 );
 
 
-CREATE TABLE public.orders (
+CREATE TABLE IF NOT EXISTS public.orders (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     order_no text NOT NULL,
     customer_id uuid NOT NULL,
@@ -560,7 +569,7 @@ CREATE TABLE public.orders (
 );
 
 
-CREATE TABLE public.password_reset_tokens (
+CREATE TABLE IF NOT EXISTS public.password_reset_tokens (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     token text NOT NULL,
@@ -571,7 +580,7 @@ CREATE TABLE public.password_reset_tokens (
 );
 
 
-CREATE TABLE public.payments (
+CREATE TABLE IF NOT EXISTS public.payments (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     payment_no text NOT NULL,
     customer_id uuid NOT NULL,
@@ -585,7 +594,7 @@ CREATE TABLE public.payments (
 );
 
 
-CREATE TABLE public.permissions (
+CREATE TABLE IF NOT EXISTS public.permissions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     label text NOT NULL,
@@ -595,7 +604,7 @@ CREATE TABLE public.permissions (
 );
 
 
-CREATE TABLE public.product_batches (
+CREATE TABLE IF NOT EXISTS public.product_batches (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     product_id uuid NOT NULL,
     batch_no text,
@@ -614,7 +623,7 @@ CREATE TABLE public.product_batches (
 );
 
 
-CREATE TABLE public.products (
+CREATE TABLE IF NOT EXISTS public.products (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     brand text,
@@ -635,7 +644,7 @@ CREATE TABLE public.products (
 );
 
 
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
     id uuid NOT NULL,
     full_name text,
     email text,
@@ -648,7 +657,7 @@ CREATE TABLE public.profiles (
 );
 
 
-CREATE TABLE public.push_subscriptions (
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     endpoint text NOT NULL,
@@ -660,7 +669,7 @@ CREATE TABLE public.push_subscriptions (
 );
 
 
-CREATE TABLE public.reminder_logs (
+CREATE TABLE IF NOT EXISTS public.reminder_logs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     customer_id uuid NOT NULL,
     invoice_id uuid,
@@ -674,7 +683,7 @@ CREATE TABLE public.reminder_logs (
 );
 
 
-CREATE TABLE public.reminder_templates (
+CREATE TABLE IF NOT EXISTS public.reminder_templates (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     days_overdue integer NOT NULL,
@@ -688,7 +697,7 @@ CREATE TABLE public.reminder_templates (
 );
 
 
-CREATE TABLE public.retailer_ledger_entries (
+CREATE TABLE IF NOT EXISTS public.retailer_ledger_entries (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     retailer_id uuid NOT NULL,
     invoice_id uuid,
@@ -704,7 +713,7 @@ CREATE TABLE public.retailer_ledger_entries (
 );
 
 
-CREATE TABLE public.role_permissions (
+CREATE TABLE IF NOT EXISTS public.role_permissions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     role text NOT NULL,
     permission_id uuid NOT NULL,
@@ -712,7 +721,7 @@ CREATE TABLE public.role_permissions (
 );
 
 
-CREATE TABLE public.route_stops (
+CREATE TABLE IF NOT EXISTS public.route_stops (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     route_id uuid NOT NULL,
     customer_id uuid NOT NULL,
@@ -722,7 +731,7 @@ CREATE TABLE public.route_stops (
 );
 
 
-CREATE TABLE public.routes (
+CREATE TABLE IF NOT EXISTS public.routes (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     area text,
@@ -742,7 +751,7 @@ CREATE TABLE public.routes (
 );
 
 
-CREATE TABLE public.share_activity_logs (
+CREATE TABLE IF NOT EXISTS public.share_activity_logs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     invoice_id uuid,
     invoice_no text,
@@ -758,7 +767,7 @@ CREATE TABLE public.share_activity_logs (
 ALTER TABLE ONLY public.share_activity_logs FORCE ROW LEVEL SECURITY;
 
 
-CREATE TABLE public.stock_adjustment_items (
+CREATE TABLE IF NOT EXISTS public.stock_adjustment_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     adjustment_id uuid NOT NULL,
     product_id uuid NOT NULL,
@@ -772,7 +781,7 @@ CREATE TABLE public.stock_adjustment_items (
 );
 
 
-CREATE TABLE public.stock_adjustments (
+CREATE TABLE IF NOT EXISTS public.stock_adjustments (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     adjustment_no text NOT NULL,
     adjustment_date date DEFAULT CURRENT_DATE NOT NULL,
@@ -790,7 +799,7 @@ CREATE TABLE public.stock_adjustments (
 );
 
 
-CREATE TABLE public.stock_reconciliation_items (
+CREATE TABLE IF NOT EXISTS public.stock_reconciliation_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     recon_id uuid NOT NULL,
     product_id uuid NOT NULL,
@@ -803,7 +812,7 @@ CREATE TABLE public.stock_reconciliation_items (
 );
 
 
-CREATE TABLE public.stock_reconciliations (
+CREATE TABLE IF NOT EXISTS public.stock_reconciliations (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     recon_no text NOT NULL,
     recon_date date DEFAULT CURRENT_DATE NOT NULL,
@@ -817,7 +826,7 @@ CREATE TABLE public.stock_reconciliations (
 );
 
 
-CREATE TABLE public.sudha_claims (
+CREATE TABLE IF NOT EXISTS public.sudha_claims (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     claim_no text NOT NULL,
     purchase_id uuid,
@@ -842,7 +851,7 @@ CREATE TABLE public.sudha_claims (
 );
 
 
-CREATE TABLE public.supplier_payments (
+CREATE TABLE IF NOT EXISTS public.supplier_payments (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     payment_no text NOT NULL,
     supplier_id uuid NOT NULL,
@@ -856,7 +865,7 @@ CREATE TABLE public.supplier_payments (
 );
 
 
-CREATE TABLE public.suppliers (
+CREATE TABLE IF NOT EXISTS public.suppliers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     company text,
@@ -870,14 +879,14 @@ CREATE TABLE public.suppliers (
 );
 
 
-CREATE TABLE public.user_roles (
+CREATE TABLE IF NOT EXISTS public.user_roles (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     role public.app_role NOT NULL
 );
 
 
-CREATE TABLE public.users (
+CREATE TABLE IF NOT EXISTS public.users (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     distributor_id uuid NOT NULL,
     email text,
@@ -904,7 +913,7 @@ CREATE TABLE public.users (
 );
 
 
-CREATE TABLE public.warehouses (
+CREATE TABLE IF NOT EXISTS public.warehouses (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     location text,
@@ -917,7 +926,7 @@ CREATE TABLE public.warehouses (
 -- VIEWS
 -- ============================================================
 
-CREATE VIEW public.daily_reconciliation WITH (security_invoker='on') AS
+CREATE OR REPLACE VIEW public.daily_reconciliation WITH (security_invoker='on') AS
  SELECT p.purchase_date AS date,
     p.bill_no AS challan_no,
     pi.product_name,

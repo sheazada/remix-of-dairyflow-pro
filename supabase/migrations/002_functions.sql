@@ -3,7 +3,7 @@
 -- FUNCTIONS
 -- ============================================================
 
-CREATE FUNCTION public.apply_delivery_quantities(_invoice_id uuid, _items jsonb) RETURNS text
+CREATE OR REPLACE FUNCTION public.apply_delivery_quantities(_invoice_id uuid, _items jsonb) RETURNS text
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -53,7 +53,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.can_manage_finance(_uid uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.can_manage_finance(_uid uuid) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -61,7 +61,7 @@ CREATE FUNCTION public.can_manage_finance(_uid uuid) RETURNS boolean
 $$;
 
 
-CREATE FUNCTION public.can_manage_sales(_uid uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.can_manage_sales(_uid uuid) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -69,7 +69,7 @@ CREATE FUNCTION public.can_manage_sales(_uid uuid) RETURNS boolean
 $$;
 
 
-CREATE FUNCTION public.create_demand_consolidation(p_delivery_cycle_id uuid) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.create_demand_consolidation(p_delivery_cycle_id uuid) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -105,7 +105,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.create_notification(_user_id uuid, _type text, _title text, _body text, _data jsonb DEFAULT '{}'::jsonb) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.create_notification(_user_id uuid, _type text, _title text, _body text, _data jsonb DEFAULT '{}'::jsonb) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -122,7 +122,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.enqueue_delivery_notifications(_delivery_id uuid) RETURNS integer
+CREATE OR REPLACE FUNCTION public.enqueue_delivery_notifications(_delivery_id uuid) RETURNS integer
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -249,7 +249,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.enqueue_run_en_route_notifications(_run_id uuid) RETURNS integer
+CREATE OR REPLACE FUNCTION public.enqueue_run_en_route_notifications(_run_id uuid) RETURNS integer
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -345,7 +345,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.ensure_delivery_cycle(p_delivery_date date, p_shift text DEFAULT 'morning'::text) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.ensure_delivery_cycle(p_delivery_date date, p_shift text DEFAULT 'morning'::text) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -364,7 +364,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.generate_adjustment_no() RETURNS text
+CREATE OR REPLACE FUNCTION public.generate_adjustment_no() RETURNS text
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -377,7 +377,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.generate_claim_no() RETURNS text
+CREATE OR REPLACE FUNCTION public.generate_claim_no() RETURNS text
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -388,7 +388,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.generate_collection_no() RETURNS text
+CREATE OR REPLACE FUNCTION public.generate_collection_no() RETURNS text
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -399,7 +399,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.generate_consolidation_no(p_date date) RETURNS text
+CREATE OR REPLACE FUNCTION public.generate_consolidation_no(p_date date) RETURNS text
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -410,7 +410,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.generate_cycle_code(p_order_date date, p_shift text) RETURNS text
+CREATE OR REPLACE FUNCTION public.generate_cycle_code(p_order_date date, p_shift text) RETURNS text
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -421,7 +421,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.generate_employee_id() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.generate_employee_id() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -438,7 +438,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.generate_recon_no() RETURNS text
+CREATE OR REPLACE FUNCTION public.generate_recon_no() RETURNS text
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -451,7 +451,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.generate_retailer_code() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.generate_retailer_code() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -468,7 +468,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.get_account_status(_user_id uuid) RETURNS text
+CREATE OR REPLACE FUNCTION public.get_account_status(_user_id uuid) RETURNS text
     LANGUAGE sql STABLE SECURITY DEFINER
     AS $$
   SELECT COALESCE(
@@ -478,7 +478,7 @@ CREATE FUNCTION public.get_account_status(_user_id uuid) RETURNS text
 $$;
 
 
-CREATE FUNCTION public.get_app_setting(_key text) RETURNS text
+CREATE OR REPLACE FUNCTION public.get_app_setting(_key text) RETURNS text
     LANGUAGE sql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -486,7 +486,7 @@ CREATE FUNCTION public.get_app_setting(_key text) RETURNS text
 $$;
 
 
-CREATE FUNCTION public.get_crate_balance_as_of(p_as_of_date date DEFAULT CURRENT_DATE, p_crate_type_id uuid DEFAULT NULL::uuid) RETURNS TABLE(retailer_id uuid, retailer_name text, shop_name text, crate_type_id uuid, crate_type_name text, balance bigint)
+CREATE OR REPLACE FUNCTION public.get_crate_balance_as_of(p_as_of_date date DEFAULT CURRENT_DATE, p_crate_type_id uuid DEFAULT NULL::uuid) RETURNS TABLE(retailer_id uuid, retailer_name text, shop_name text, crate_type_id uuid, crate_type_name text, balance bigint)
     LANGUAGE plpgsql STABLE
     SET search_path TO 'public'
     AS $$
@@ -509,7 +509,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.get_customer_by_user_email(_email text) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.get_customer_by_user_email(_email text) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -527,7 +527,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.get_near_expiry_stock(_days integer DEFAULT 30) RETURNS TABLE(product_name text, batch_no text, expiry_date date, available_qty numeric, days_remaining integer)
+CREATE OR REPLACE FUNCTION public.get_near_expiry_stock(_days integer DEFAULT 30) RETURNS TABLE(product_name text, batch_no text, expiry_date date, available_qty numeric, days_remaining integer)
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -546,7 +546,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.get_next_revision_no(_invoice_id uuid) RETURNS integer
+CREATE OR REPLACE FUNCTION public.get_next_revision_no(_invoice_id uuid) RETURNS integer
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -554,21 +554,21 @@ CREATE FUNCTION public.get_next_revision_no(_invoice_id uuid) RETURNS integer
 $$;
 
 
-CREATE FUNCTION public.get_permission_id(_name text) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.get_permission_id(_name text) RETURNS uuid
     LANGUAGE sql STABLE
     AS $$
   SELECT id FROM public.permissions WHERE name = _name LIMIT 1;
 $$;
 
 
-CREATE FUNCTION public.get_retailer_code(_user_id uuid) RETURNS text
+CREATE OR REPLACE FUNCTION public.get_retailer_code(_user_id uuid) RETURNS text
     LANGUAGE sql STABLE SECURITY DEFINER
     AS $$
   SELECT retailer_code FROM public.customers WHERE user_id = _user_id LIMIT 1;
 $$;
 
 
-CREATE FUNCTION public.get_stock_valuation() RETURNS TABLE(product_id uuid, product_name text, total_qty numeric, available_qty numeric, damaged_qty numeric, avg_cost numeric, total_value numeric)
+CREATE OR REPLACE FUNCTION public.get_stock_valuation() RETURNS TABLE(product_id uuid, product_name text, total_qty numeric, available_qty numeric, damaged_qty numeric, avg_cost numeric, total_value numeric)
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -589,7 +589,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.get_unread_notification_count(_user_id uuid) RETURNS integer
+CREATE OR REPLACE FUNCTION public.get_unread_notification_count(_user_id uuid) RETURNS integer
     LANGUAGE sql
     SET search_path TO 'public'
     AS $$
@@ -601,7 +601,7 @@ CREATE FUNCTION public.get_unread_notification_count(_user_id uuid) RETURNS inte
 $$;
 
 
-CREATE FUNCTION public.get_user_permissions(_user_id uuid) RETURNS TABLE(permission_name text, permission_label text, category text)
+CREATE OR REPLACE FUNCTION public.get_user_permissions(_user_id uuid) RETURNS TABLE(permission_name text, permission_label text, category text)
     LANGUAGE sql STABLE SECURITY DEFINER
     AS $$
   SELECT DISTINCT p.name, p.label, p.category
@@ -612,7 +612,7 @@ CREATE FUNCTION public.get_user_permissions(_user_id uuid) RETURNS TABLE(permiss
 $$;
 
 
-CREATE FUNCTION public.handle_new_user() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -631,7 +631,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.has_permission(_user_id uuid, _permission_name text) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.has_permission(_user_id uuid, _permission_name text) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
     AS $$
   SELECT EXISTS (
@@ -644,7 +644,7 @@ CREATE FUNCTION public.has_permission(_user_id uuid, _permission_name text) RETU
 $$;
 
 
-CREATE FUNCTION public.has_reminder_been_sent(_invoice_id uuid, _template_id uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.has_reminder_been_sent(_invoice_id uuid, _template_id uuid) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -652,7 +652,7 @@ CREATE FUNCTION public.has_reminder_been_sent(_invoice_id uuid, _template_id uui
 $$;
 
 
-CREATE FUNCTION public.has_role(_user_id uuid, _role public.app_role) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role public.app_role) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -660,7 +660,7 @@ CREATE FUNCTION public.has_role(_user_id uuid, _role public.app_role) RETURNS bo
 $$;
 
 
-CREATE FUNCTION public.is_account_active(_user_id uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.is_account_active(_user_id uuid) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
     AS $$
   SELECT COALESCE(
@@ -670,7 +670,7 @@ CREATE FUNCTION public.is_account_active(_user_id uuid) RETURNS boolean
 $$;
 
 
-CREATE FUNCTION public.is_internal_staff(_uid uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.is_internal_staff(_uid uuid) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -681,7 +681,7 @@ CREATE FUNCTION public.is_internal_staff(_uid uuid) RETURNS boolean
 $$;
 
 
-CREATE FUNCTION public.is_staff(_uid uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.is_staff(_uid uuid) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -689,7 +689,7 @@ CREATE FUNCTION public.is_staff(_uid uuid) RETURNS boolean
 $$;
 
 
-CREATE FUNCTION public.link_customer_to_user(_customer_id uuid, _email text) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.link_customer_to_user(_customer_id uuid, _email text) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -710,7 +710,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.log_access_event(_event_type text, _user_id uuid, _user_email text, _user_roles text[], _required_roles text[], _route_path text, _ip_address text, _user_agent text, _reason text) RETURNS void
+CREATE OR REPLACE FUNCTION public.log_access_event(_event_type text, _user_id uuid, _user_email text, _user_roles text[], _required_roles text[], _route_path text, _ip_address text, _user_agent text, _reason text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -726,7 +726,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.log_delivery_changes() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.log_delivery_changes() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $_$
@@ -751,7 +751,7 @@ BEGIN
 END $_$;
 
 
-CREATE FUNCTION public.log_delivery_run_changes() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.log_delivery_run_changes() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $_$
@@ -778,7 +778,7 @@ BEGIN
 END $_$;
 
 
-CREATE FUNCTION public.post_stock_adjustment(_adjustment_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.post_stock_adjustment(_adjustment_id uuid) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -839,7 +839,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.recalc_customer_outstanding(_customer_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.recalc_customer_outstanding(_customer_id uuid) RETURNS void
     LANGUAGE sql
     SET search_path TO 'public'
     AS $$
@@ -852,7 +852,7 @@ CREATE FUNCTION public.recalc_customer_outstanding(_customer_id uuid) RETURNS vo
 $$;
 
 
-CREATE FUNCTION public.recalc_invoice(_invoice_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.recalc_invoice(_invoice_id uuid) RETURNS void
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -905,7 +905,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.recalc_purchase(_purchase_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.recalc_purchase(_purchase_id uuid) RETURNS void
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -931,7 +931,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.recalc_run_delivery_status(_run_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.recalc_run_delivery_status(_run_id uuid) RETURNS void
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -980,7 +980,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.recalc_supplier_outstanding(_supplier_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.recalc_supplier_outstanding(_supplier_id uuid) RETURNS void
     LANGUAGE sql
     SET search_path TO 'public'
     AS $$
@@ -996,7 +996,7 @@ CREATE FUNCTION public.recalc_supplier_outstanding(_supplier_id uuid) RETURNS vo
 $$;
 
 
-CREATE FUNCTION public.reconcile_collection(_collection_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.reconcile_collection(_collection_id uuid) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1018,7 +1018,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.record_notification_attempt(_id uuid, _success boolean, _error text DEFAULT NULL::text, _provider text DEFAULT NULL::text, _provider_msg text DEFAULT NULL::text, _suppressed boolean DEFAULT false) RETURNS public.notification_logs
+CREATE OR REPLACE FUNCTION public.record_notification_attempt(_id uuid, _success boolean, _error text DEFAULT NULL::text, _provider text DEFAULT NULL::text, _provider_msg text DEFAULT NULL::text, _suppressed boolean DEFAULT false) RETURNS public.notification_logs
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -1073,7 +1073,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.revise_invoice(_invoice_id uuid, _revision_reason text, _revised_items jsonb, _revised_by uuid) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.revise_invoice(_invoice_id uuid, _revision_reason text, _revised_items jsonb, _revised_by uuid) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1153,7 +1153,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.role_has_permission(_role text, _permission_name text) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.role_has_permission(_role text, _permission_name text) RETURNS boolean
     LANGUAGE sql STABLE
     AS $$
   SELECT EXISTS (
@@ -1165,7 +1165,7 @@ CREATE FUNCTION public.role_has_permission(_role text, _permission_name text) RE
 $$;
 
 
-CREATE FUNCTION public.send_notification(_user_id uuid, _type text, _title text, _body text, _data jsonb DEFAULT '{}'::jsonb) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.send_notification(_user_id uuid, _type text, _title text, _body text, _data jsonb DEFAULT '{}'::jsonb) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1177,7 +1177,7 @@ BEGIN
 END; $$;
 
 
-CREATE FUNCTION public.tg_customers_guard_user_id() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.tg_customers_guard_user_id() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1201,7 +1201,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.tg_deliveries_recalc_run_status() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.tg_deliveries_recalc_run_status() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -1234,7 +1234,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.tg_invoice_items_recalc() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.tg_invoice_items_recalc() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -1253,7 +1253,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.tg_invoices_customer_outstanding() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.tg_invoices_customer_outstanding() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -1272,7 +1272,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.tg_payments_recalc() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.tg_payments_recalc() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -1291,7 +1291,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.tg_purchases_supplier_outstanding() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.tg_purchases_supplier_outstanding() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -1310,7 +1310,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.tg_runs_enqueue_status_notifications() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.tg_runs_enqueue_status_notifications() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1343,7 +1343,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.tg_runs_recalc_delivery_status() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.tg_runs_recalc_delivery_status() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -1354,14 +1354,14 @@ END;
 $$;
 
 
-CREATE FUNCTION public.tg_set_updated_at() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.tg_set_updated_at() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
 
 
-CREATE FUNCTION public.tg_supplier_payments_recalc() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.tg_supplier_payments_recalc() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -1385,7 +1385,7 @@ END;
 $$;
 
 
-CREATE FUNCTION public.update_updated_at_column() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.update_updated_at_column() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
