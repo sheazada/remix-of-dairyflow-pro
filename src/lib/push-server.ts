@@ -11,6 +11,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/integrations/supabase/types";
+import { getVapidDetails } from "./vapid.server";
 
 export type NotificationType = "order" | "delivery" | "payment" | "low_stock" | "expiry" | "general";
 
@@ -68,31 +69,16 @@ export async function sendPushNotification(
     return { notificationId, sentCount: 0 };
   }
 
-  // 3. Get VAPID keys
-  const { data: pubKey } = await supabaseAdmin
-    .from("app_settings")
-    .select("value")
-    .eq("key", "vapid_public_key")
-    .maybeSingle();
-
-  const { data: privKey } = await supabaseAdmin
-    .from("app_settings")
-    .select("value")
-    .eq("key", "vapid_private_key")
-    .maybeSingle();
-
-  if (!pubKey?.value || !privKey?.value) {
+  // 3. Get VAPID keys from backend secrets
+  const vapid = getVapidDetails();
+  if (!vapid) {
     console.warn("[push-server] VAPID keys not configured — skipping push send");
     return { notificationId, sentCount: 0 };
   }
 
   // 4. Configure web-push
   const webpush = await import("web-push");
-  webpush.setVapidDetails(
-    "mailto:notifications@dairyflow.app",
-    pubKey.value,
-    privKey.value,
-  );
+  webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey);
 
   const payload = JSON.stringify({
     title: opts.title,

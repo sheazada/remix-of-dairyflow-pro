@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { Json } from "@/integrations/supabase/types";
 import { withErrorCapture } from "./sentry-server";
+import { getVapidDetails } from "./vapid.server";
 
 const pushPayloadSchema = z.object({
   userId: z.string().uuid(),
@@ -16,7 +17,7 @@ const pushPayloadSchema = z.object({
 
 /**
  * Send a browser push notification to a specific user.
- * Uses web-push library with VAPID keys stored in app_settings.
+ * Uses web-push library with VAPID keys stored as backend secrets.
  */
 export const sendPushToUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -54,31 +55,16 @@ export const sendPushToUser = createServerFn({ method: "POST" })
       return { sent: false, notificationId: notification?.id, error: "No subscriptions" };
     }
 
-    // 3. Get VAPID keys from app_settings
-    const { data: publicKeyRow } = await supabaseAdmin
-      .from("app_settings")
-      .select("value")
-      .eq("key", "vapid_public_key")
-      .single();
-
-    const { data: privateKeyRow } = await supabaseAdmin
-      .from("app_settings")
-      .select("value")
-      .eq("key", "vapid_private_key")
-      .single();
-
-    if (!publicKeyRow?.value || !privateKeyRow?.value) {
-      console.error("[Push] VAPID keys not configured in app_settings");
+    // 3. Get VAPID keys from backend secrets
+    const vapid = getVapidDetails();
+    if (!vapid) {
+      console.error("[Push] VAPID secrets not configured");
       return { sent: false, error: "VAPID keys not configured" };
     }
 
     // 4. Send push to each subscription
     const webpush = await import("web-push");
-    webpush.setVapidDetails(
-      "mailto:notifications@dairyflow.app",
-      publicKeyRow.value,
-      privateKeyRow.value,
-    );
+    webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey);
 
     const payload = JSON.stringify({
       title: data.title,
@@ -151,20 +137,9 @@ export const sendPushBroadcast = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Get VAPID keys
-    const { data: publicKeyRow } = await supabaseAdmin
-      .from("app_settings")
-      .select("value")
-      .eq("key", "vapid_public_key")
-      .single();
-
-    const { data: privateKeyRow } = await supabaseAdmin
-      .from("app_settings")
-      .select("value")
-      .eq("key", "vapid_private_key")
-      .single();
-
-    if (!publicKeyRow?.value || !privateKeyRow?.value) {
+    // Get VAPID keys from backend secrets
+    const vapid = getVapidDetails();
+    if (!vapid) {
       return { sent: false, error: "VAPID keys not configured" };
     }
 
@@ -178,11 +153,7 @@ export const sendPushBroadcast = createServerFn({ method: "POST" })
     }
 
     const webpush = await import("web-push");
-    webpush.setVapidDetails(
-      "mailto:notifications@dairyflow.app",
-      publicKeyRow.value,
-      privateKeyRow.value,
-    );
+    webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey);
 
     const payload = JSON.stringify({
       title: data.title,
