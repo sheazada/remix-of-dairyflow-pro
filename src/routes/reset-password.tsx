@@ -11,13 +11,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/reset-password")({
-  component: ResetPasswordPage,
+const searchSchema = z.object({
+  token: z.string().optional(),
+  user_id: z.string().optional(),
 });
 
-const searchSchema = z.object({
-  token: z.string(),
-  user_id: z.string(),
+export const Route = createFileRoute("/reset-password")({
+  component: ResetPasswordPage,
+  validateSearch: searchSchema,
 });
 
 const resetPasswordSchema = z.object({
@@ -55,8 +56,8 @@ function ResetPasswordPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
           token,

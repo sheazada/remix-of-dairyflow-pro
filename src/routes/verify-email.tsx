@@ -19,12 +19,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/verify-email")({
-  component: VerifyEmailPage,
-});
-
 const searchSchema = z.object({
   token: z.string().optional(),
+});
+
+export const Route = createFileRoute("/verify-email")({
+  component: VerifyEmailPage,
+  validateSearch: searchSchema,
 });
 
 const passwordSchema = z.object({
@@ -109,8 +110,8 @@ function VerifyEmailPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
           token,
