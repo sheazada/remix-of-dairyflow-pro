@@ -2,6 +2,19 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
+// Node < 22 has no native WebSocket; @supabase/realtime-js crashes at client
+// construction during SSR without one. Polyfill from the `ws` package (server-side
+// only; browsers and Node 22+ / edge runtimes already provide WebSocket).
+if (typeof window === "undefined" && typeof (globalThis as any).WebSocket === "undefined") {
+  try {
+    const { createRequire } = await import("node:module");
+    const req = createRequire(import.meta.url);
+    (globalThis as any).WebSocket = req("ws").WebSocket;
+  } catch {
+    // realtime stays unavailable; auth/postgrest still work
+  }
+}
+
 const SUPABASE_URL = "https://otqdtqbrigivwxmtijyp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90cWR0cWJyaWdpdnd4bXRpanlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNDUxODUsImV4cCI6MjEwMTkyMTE4NX0.bu2Gt6T4TaZrtcFJYZYLXY7bxRzbce-kb9kMVaAW624";
 
