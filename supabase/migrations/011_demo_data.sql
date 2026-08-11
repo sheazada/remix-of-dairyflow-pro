@@ -146,6 +146,11 @@ INSERT INTO public.crate_transactions (id, crate_type_id, retailer_id, transacti
 ON CONFLICT (id) DO NOTHING;
 
 -- ---------- Expenses ----------
+-- Older migration series created expense_categories without is_active;
+-- the original schema (and the app) expects it.
+ALTER TABLE public.expense_categories
+  ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true;
+
 INSERT INTO public.expense_categories (id, name, color, icon, is_active) VALUES
  ('d1000000-0000-4000-8000-000000000500','Fuel & Transport','#f59e0b','fuel',true)
 ON CONFLICT (name) DO NOTHING;
