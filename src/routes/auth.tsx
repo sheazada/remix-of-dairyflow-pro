@@ -56,20 +56,46 @@ function LoginPage() {
     setError(null);
 
     try {
-      // Find user by email or mobile
-      let query = supabase.from("users").select("*");
-      
-      if (data.email) {
-        query = query.eq("email", data.email);
-      } else if (data.mobile) {
-        query = query.eq("mobile", data.mobile);
+      // ROOT-CAUSE FIX: an expired/stale session left over from a previous
+      // visit made the pre-auth lookup below fail with 401 "invalid JWT",
+      // which surfaced as "Invalid credentials" even with correct login
+      // details. Always start the login flow with a clean session.
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        /* no session to clear */
       }
 
-      const { data: users, error: queryError } = await query.single();
+      const lookupUser = async () => {
+        let query = supabase.from("users").select("*");
+        if (data.email) {
+          query = query.eq("email", data.email);
+        } else if (data.mobile) {
+          query = query.eq("mobile", data.mobile);
+        }
+        return query.single();
+      };
+
+      let { data: users, error: queryError } = await lookupUser();
+
+      // If a stale auth header still poisoned the request, retry once clean.
+      if (queryError && /jwt|token|401|permission denied|row-level/i.test(queryError.message)) {
+        try {
+          await supabase.auth.signOut();
+        } catch {
+          /* ignore */
+        }
+        const retry = await lookupUser();
+        users = retry.data;
+        queryError = retry.error;
+      }
 
       if (queryError || !users) {
-        setError("Invalid credentials");
-        toast.error("Invalid credentials");
+        const msg = queryError
+          ? `Account lookup failed: ${queryError.message}`
+          : "No account found for these details";
+        setError(msg);
+        toast.error(msg);
         setIsLoading(false);
         return;
       }
@@ -98,8 +124,14 @@ function LoginPage() {
       });
 
       if (authError) {
-        setError("Invalid credentials");
-        toast.error("Invalid credentials");
+        // Show the real reason (invalid password, rate limit, email not
+        // confirmed, ...) instead of a generic message.
+        const msg =
+          /invalid login credentials/i.test(authError.message)
+            ? "Invalid email or password"
+            : authError.message;
+        setError(msg);
+        toast.error(msg);
         setIsLoading(false);
         return;
       }
