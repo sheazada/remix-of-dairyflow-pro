@@ -2105,6 +2105,7 @@ export type Database = {
           id: string
           p256dh: string
           updated_at: string | null
+          user_agent: string | null
           user_id: string
         }
         Insert: {
@@ -2114,6 +2115,7 @@ export type Database = {
           id?: string
           p256dh: string
           updated_at?: string | null
+          user_agent?: string | null
           user_id: string
         }
         Update: {
@@ -2123,6 +2125,7 @@ export type Database = {
           id?: string
           p256dh?: string
           updated_at?: string | null
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
