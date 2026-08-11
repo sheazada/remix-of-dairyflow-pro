@@ -17,6 +17,7 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { PERMISSION_CATEGORIES, type Permission, type RolePermission } from "@/lib/permissions";
 import { toast } from "sonner";
+import { UserManagement } from "@/components/user-management";
 import { 
   ShoppingCart, 
   ReceiptText, 
@@ -61,6 +62,7 @@ function PermissionsManager() {
   const [selectedRole, setSelectedRole] = useState("admin");
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
+  const [tab, setTab] = useState<"permissions" | "users">("permissions");
 
   const getAllPermsFn = useServerFn(getAllPermissions);
   const getRolePermsFn = useServerFn(getRolePermissions);
@@ -145,6 +147,24 @@ function PermissionsManager() {
         description="Control what each role can access. Changes take effect immediately."
       />
 
+      <div className="flex gap-2 mb-6">
+        <Button
+          variant={tab === "permissions" ? "default" : "outline"}
+          onClick={() => setTab("permissions")}
+        >
+          <Shield className="h-4 w-4 mr-2" />
+          Role Permissions
+        </Button>
+        <Button
+          variant={tab === "users" ? "default" : "outline"}
+          onClick={() => setTab("users")}
+        >
+          <Users className="h-4 w-4 mr-2" />
+          Users & Access
+        </Button>
+      </div>
+
+      {tab === "permissions" ? (
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -260,6 +280,9 @@ function PermissionsManager() {
           </div>
         )}
       </Card>
+      ) : (
+        <UserManagement />
+      )}
     </PageContainer>
   );
 }

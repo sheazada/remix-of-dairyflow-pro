@@ -36,6 +36,8 @@ export const ROUTE_ACCESS: { prefix: string; permissions: string[] }[] = [
   { prefix: "/share-log", permissions: ["view_audit_logs"] },
   { prefix: "/admin/roles", permissions: ["manage_roles"] },
   { prefix: "/admin/permissions", permissions: ["manage_roles"] },
+  { prefix: "/admin", permissions: ["manage_users"] },
+  { prefix: "/admin/permissions", permissions: ["manage_roles"] },
   { prefix: "/settings", permissions: ["manage_settings"] },
 ];
 
