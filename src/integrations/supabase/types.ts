@@ -17,7 +17,7 @@ export type Database = {
       access_audit_logs: {
         Row: {
           browser: string | null
-          created_at: string
+          created_at: string | null
           device_model: string | null
           device_type: string | null
           event_type: string
@@ -37,7 +37,7 @@ export type Database = {
         }
         Insert: {
           browser?: string | null
-          created_at?: string
+          created_at?: string | null
           device_model?: string | null
           device_type?: string | null
           event_type: string
@@ -57,7 +57,7 @@ export type Database = {
         }
         Update: {
           browser?: string | null
-          created_at?: string
+          created_at?: string | null
           device_model?: string | null
           device_type?: string | null
           event_type?: string
@@ -161,33 +161,33 @@ export type Database = {
       collection_allocations: {
         Row: {
           allocated_amount: number
-          created_at: string
+          created_at: string | null
           customer_id: string
           driver_collection_id: string
           id: string
           invoice_id: string | null
           notes: string | null
-          payment_mode: string
+          payment_mode: string | null
         }
         Insert: {
           allocated_amount?: number
-          created_at?: string
+          created_at?: string | null
           customer_id: string
           driver_collection_id: string
           id?: string
           invoice_id?: string | null
           notes?: string | null
-          payment_mode?: string
+          payment_mode?: string | null
         }
         Update: {
           allocated_amount?: number
-          created_at?: string
+          created_at?: string | null
           customer_id?: string
           driver_collection_id?: string
           id?: string
           invoice_id?: string | null
           notes?: string | null
-          payment_mode?: string
+          payment_mode?: string | null
         }
         Relationships: [
           {
@@ -216,39 +216,39 @@ export type Database = {
       crate_transactions: {
         Row: {
           crate_type_id: string
-          created_at: string
+          created_at: string | null
           created_by: string | null
           delivery_id: string | null
           id: string
           notes: string | null
           quantity: number
-          retailer_id: string
+          retailer_id: string | null
           route_id: string | null
           transaction_date: string
           transaction_type: string
         }
         Insert: {
           crate_type_id: string
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           delivery_id?: string | null
           id?: string
           notes?: string | null
           quantity: number
-          retailer_id: string
+          retailer_id?: string | null
           route_id?: string | null
           transaction_date?: string
           transaction_type: string
         }
         Update: {
           crate_type_id?: string
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           delivery_id?: string | null
           id?: string
           notes?: string | null
           quantity?: number
-          retailer_id?: string
+          retailer_id?: string | null
           route_id?: string | null
           transaction_date?: string
           transaction_type?: string
@@ -286,24 +286,24 @@ export type Database = {
       }
       crate_types: {
         Row: {
-          created_at: string
+          created_at: string | null
           description: string | null
           id: string
-          is_active: boolean
+          is_active: boolean | null
           name: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           id?: string
-          is_active?: boolean
+          is_active?: boolean | null
           name: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           id?: string
-          is_active?: boolean
+          is_active?: boolean | null
           name?: string
         }
         Relationships: []
@@ -493,7 +493,7 @@ export type Database = {
       }
       delivery_cycles: {
         Row: {
-          created_at: string
+          created_at: string | null
           cutoff_at: string
           cycle_code: string
           delivery_date: string
@@ -502,10 +502,10 @@ export type Database = {
           notes: string | null
           order_date: string
           status: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           cutoff_at: string
           cycle_code: string
           delivery_date: string
@@ -514,10 +514,10 @@ export type Database = {
           notes?: string | null
           order_date: string
           status?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           cutoff_at?: string
           cycle_code?: string
           delivery_date?: string
@@ -526,7 +526,7 @@ export type Database = {
           notes?: string | null
           order_date?: string
           status?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -619,7 +619,7 @@ export type Database = {
       demand_consolidation_items: {
         Row: {
           buffer_qty: number
-          created_at: string
+          created_at: string | null
           demand_consolidation_id: string
           final_procurement_qty: number
           id: string
@@ -629,11 +629,11 @@ export type Database = {
           total_ordered_qty: number
           total_value: number
           unit_price: number
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           buffer_qty?: number
-          created_at?: string
+          created_at?: string | null
           demand_consolidation_id: string
           final_procurement_qty?: number
           id?: string
@@ -643,11 +643,11 @@ export type Database = {
           total_ordered_qty?: number
           total_value?: number
           unit_price?: number
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           buffer_qty?: number
-          created_at?: string
+          created_at?: string | null
           demand_consolidation_id?: string
           final_procurement_qty?: number
           id?: string
@@ -657,7 +657,7 @@ export type Database = {
           total_ordered_qty?: number
           total_value?: number
           unit_price?: number
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -682,39 +682,39 @@ export type Database = {
           approved_by: string | null
           consolidation_date: string
           consolidation_no: string
-          created_at: string
+          created_at: string | null
           created_by: string | null
           delivery_cycle_id: string
           id: string
           notes: string | null
           status: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
           consolidation_date: string
           consolidation_no: string
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           delivery_cycle_id: string
           id?: string
           notes?: string | null
           status?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           approved_at?: string | null
           approved_by?: string | null
           consolidation_date?: string
           consolidation_no?: string
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           delivery_cycle_id?: string
           id?: string
           notes?: string | null
           status?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -728,17 +728,17 @@ export type Database = {
       }
       demand_source_orders: {
         Row: {
-          created_at: string
+          created_at: string | null
           demand_consolidation_id: string
           order_id: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           demand_consolidation_id: string
           order_id: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           demand_consolidation_id?: string
           order_id?: string
         }
@@ -832,50 +832,50 @@ export type Database = {
         Row: {
           collected_amount: number
           collection_no: string
-          created_at: string
+          created_at: string | null
           delivery_date: string
           driver_name: string | null
           expected_amount: number
           id: string
-          mismatch_amount: number
+          mismatch_amount: number | null
           notes: string | null
           reconciled_at: string | null
           reconciled_by: string | null
           route_id: string | null
           status: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           collected_amount?: number
           collection_no: string
-          created_at?: string
+          created_at?: string | null
           delivery_date?: string
           driver_name?: string | null
           expected_amount?: number
           id?: string
-          mismatch_amount?: number
+          mismatch_amount?: number | null
           notes?: string | null
           reconciled_at?: string | null
           reconciled_by?: string | null
           route_id?: string | null
           status?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           collected_amount?: number
           collection_no?: string
-          created_at?: string
+          created_at?: string | null
           delivery_date?: string
           driver_name?: string | null
           expected_amount?: number
           id?: string
-          mismatch_amount?: number
+          mismatch_amount?: number | null
           notes?: string | null
           reconciled_at?: string | null
           reconciled_by?: string | null
           route_id?: string | null
           status?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -969,31 +969,25 @@ export type Database = {
       }
       expense_categories: {
         Row: {
-          color: string
-          created_at: string
+          color: string | null
+          created_at: string | null
           icon: string | null
           id: string
-          is_active: boolean
           name: string
-          updated_at: string
         }
         Insert: {
-          color?: string
-          created_at?: string
+          color?: string | null
+          created_at?: string | null
           icon?: string | null
           id?: string
-          is_active?: boolean
           name: string
-          updated_at?: string
         }
         Update: {
-          color?: string
-          created_at?: string
+          color?: string | null
+          created_at?: string | null
           icon?: string | null
           id?: string
-          is_active?: boolean
           name?: string
-          updated_at?: string
         }
         Relationships: []
       }
@@ -1001,41 +995,44 @@ export type Database = {
         Row: {
           amount: number
           category_id: string
-          created_at: string
+          created_at: string | null
           created_by: string | null
           description: string | null
           expense_date: string
           id: string
           notes: string | null
-          payment_mode: string
+          payment_mode: string | null
+          receipt_url: string | null
           reference_no: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          amount?: number
+          amount: number
           category_id: string
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           description?: string | null
           expense_date?: string
           id?: string
           notes?: string | null
-          payment_mode?: string
+          payment_mode?: string | null
+          receipt_url?: string | null
           reference_no?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           amount?: number
           category_id?: string
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           description?: string | null
           expense_date?: string
           id?: string
           notes?: string | null
-          payment_mode?: string
+          payment_mode?: string | null
+          receipt_url?: string | null
           reference_no?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -1256,7 +1253,7 @@ export type Database = {
       invoice_revisions: {
         Row: {
           changes_json: Json
-          created_at: string
+          created_at: string | null
           id: string
           invoice_id: string
           original_invoice_id: string | null
@@ -1269,7 +1266,7 @@ export type Database = {
         }
         Insert: {
           changes_json: Json
-          created_at?: string
+          created_at?: string | null
           id?: string
           invoice_id: string
           original_invoice_id?: string | null
@@ -1282,7 +1279,7 @@ export type Database = {
         }
         Update: {
           changes_json?: Json
-          created_at?: string
+          created_at?: string | null
           id?: string
           invoice_id?: string
           original_invoice_id?: string | null
@@ -1322,11 +1319,11 @@ export type Database = {
           igst: number
           invoice_date: string
           invoice_no: string
-          is_revised: boolean
+          is_revised: boolean | null
           notes: string | null
           order_id: string | null
           paid: number
-          revision_count: number
+          revision_count: number | null
           sgst: number
           status: string
           subtotal: number
@@ -1345,11 +1342,11 @@ export type Database = {
           igst?: number
           invoice_date?: string
           invoice_no: string
-          is_revised?: boolean
+          is_revised?: boolean | null
           notes?: string | null
           order_id?: string | null
           paid?: number
-          revision_count?: number
+          revision_count?: number | null
           sgst?: number
           status?: string
           subtotal?: number
@@ -1368,11 +1365,11 @@ export type Database = {
           igst?: number
           invoice_date?: string
           invoice_no?: string
-          is_revised?: boolean
+          is_revised?: boolean | null
           notes?: string | null
           order_id?: string | null
           paid?: number
-          revision_count?: number
+          revision_count?: number | null
           sgst?: number
           status?: string
           subtotal?: number
@@ -1570,8 +1567,8 @@ export type Database = {
       notifications: {
         Row: {
           body: string
-          created_at: string
-          data: Json
+          created_at: string | null
+          data: Json | null
           id: string
           read_at: string | null
           title: string
@@ -1580,8 +1577,8 @@ export type Database = {
         }
         Insert: {
           body: string
-          created_at?: string
-          data?: Json
+          created_at?: string | null
+          data?: Json | null
           id?: string
           read_at?: string | null
           title: string
@@ -1590,8 +1587,8 @@ export type Database = {
         }
         Update: {
           body?: string
-          created_at?: string
-          data?: Json
+          created_at?: string | null
+          data?: Json | null
           id?: string
           read_at?: string | null
           title?: string
@@ -2103,32 +2100,29 @@ export type Database = {
       push_subscriptions: {
         Row: {
           auth: string
-          created_at: string
+          created_at: string | null
           endpoint: string
           id: string
           p256dh: string
-          updated_at: string
-          user_agent: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           auth: string
-          created_at?: string
+          created_at?: string | null
           endpoint: string
           id?: string
           p256dh: string
-          updated_at?: string
-          user_agent?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           auth?: string
-          created_at?: string
+          created_at?: string | null
           endpoint?: string
           id?: string
           p256dh?: string
-          updated_at?: string
-          user_agent?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -2136,34 +2130,34 @@ export type Database = {
       reminder_logs: {
         Row: {
           channel: string
-          created_at: string
+          created_at: string | null
           customer_id: string
           error_message: string | null
           id: string
           invoice_id: string | null
-          sent_at: string
+          sent_at: string | null
           status: string
           template_id: string | null
         }
         Insert: {
           channel: string
-          created_at?: string
+          created_at?: string | null
           customer_id: string
           error_message?: string | null
           id?: string
           invoice_id?: string | null
-          sent_at?: string
+          sent_at?: string | null
           status?: string
           template_id?: string | null
         }
         Update: {
           channel?: string
-          created_at?: string
+          created_at?: string | null
           customer_id?: string
           error_message?: string | null
           id?: string
           invoice_id?: string | null
-          sent_at?: string
+          sent_at?: string | null
           status?: string
           template_id?: string | null
         }
@@ -2195,35 +2189,35 @@ export type Database = {
         Row: {
           body: string
           channel: string
-          created_at: string
+          created_at: string | null
           days_overdue: number
           id: string
-          is_active: boolean
+          is_active: boolean | null
           name: string
           subject: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           body: string
           channel: string
-          created_at?: string
+          created_at?: string | null
           days_overdue: number
           id?: string
-          is_active?: boolean
+          is_active?: boolean | null
           name: string
           subject?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           body?: string
           channel?: string
-          created_at?: string
+          created_at?: string | null
           days_overdue?: number
           id?: string
-          is_active?: boolean
+          is_active?: boolean | null
           name?: string
           subject?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2684,11 +2678,11 @@ export type Database = {
       }
       sudha_claims: {
         Row: {
-          claim_amount: number
+          claim_amount: number | null
           claim_date: string
           claim_no: string
           claim_type: string
-          created_at: string
+          created_at: string | null
           created_by: string | null
           credited_at: string | null
           evidence_url: string | null
@@ -2702,14 +2696,14 @@ export type Database = {
           status: string
           submitted_to_sudha_at: string | null
           sudha_response: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          claim_amount?: number
+          claim_amount?: number | null
           claim_date?: string
           claim_no: string
           claim_type: string
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           credited_at?: string | null
           evidence_url?: string | null
@@ -2723,14 +2717,14 @@ export type Database = {
           status?: string
           submitted_to_sudha_at?: string | null
           sudha_response?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          claim_amount?: number
+          claim_amount?: number | null
           claim_date?: string
           claim_no?: string
           claim_type?: string
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           credited_at?: string | null
           evidence_url?: string | null
@@ -2744,7 +2738,7 @@ export type Database = {
           status?: string
           submitted_to_sudha_at?: string | null
           sudha_response?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -3011,6 +3005,10 @@ export type Database = {
         Args: { _invoice_id: string; _items: Json }
         Returns: string
       }
+      calculate_crate_balance: {
+        Args: { p_crate_type_id?: string; p_retailer_id: string }
+        Returns: number
+      }
       can_manage_finance: { Args: { _uid: string }; Returns: boolean }
       can_manage_sales: { Args: { _uid: string }; Returns: boolean }
       create_demand_consolidation: {
@@ -3039,6 +3037,15 @@ export type Database = {
         Args: { p_delivery_date: string; p_shift?: string }
         Returns: string
       }
+      expense_total: { Args: { _from: string; _to: string }; Returns: number }
+      expense_totals_by_category: {
+        Args: { _from: string; _to: string }
+        Returns: {
+          category_id: string
+          category_name: string
+          total_amount: number
+        }[]
+      }
       generate_adjustment_no: { Args: never; Returns: string }
       generate_claim_no: { Args: never; Returns: string }
       generate_collection_no: { Args: never; Returns: string }
@@ -3050,17 +3057,29 @@ export type Database = {
       generate_recon_no: { Args: never; Returns: string }
       get_account_status: { Args: { _user_id: string }; Returns: string }
       get_app_setting: { Args: { _key: string }; Returns: string }
-      get_crate_balance_as_of: {
-        Args: { p_as_of_date?: string; p_crate_type_id?: string }
-        Returns: {
-          balance: number
-          crate_type_id: string
-          crate_type_name: string
-          retailer_id: string
-          retailer_name: string
-          shop_name: string
-        }[]
-      }
+      get_crate_balance_as_of:
+        | {
+            Args: { as_of_date?: string }
+            Returns: {
+              balance: number
+              crate_type_id: string
+              crate_type_name: string
+              retailer_id: string
+              retailer_name: string
+              shop_name: string
+            }[]
+          }
+        | {
+            Args: { p_as_of_date?: string; p_crate_type_id?: string }
+            Returns: {
+              balance: number
+              crate_type_id: string
+              crate_type_name: string
+              retailer_id: string
+              retailer_name: string
+              shop_name: string
+            }[]
+          }
       get_customer_by_user_email: { Args: { _email: string }; Returns: string }
       get_near_expiry_stock: {
         Args: { _days?: number }
@@ -3115,6 +3134,7 @@ export type Database = {
         Returns: boolean
       }
       is_account_active: { Args: { _user_id: string }; Returns: boolean }
+      is_distributor: { Args: { _uid: string }; Returns: boolean }
       is_internal_staff: { Args: { _uid: string }; Returns: boolean }
       is_staff: { Args: { _uid: string }; Returns: boolean }
       link_customer_to_user: {
