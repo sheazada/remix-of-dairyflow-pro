@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { UserManagement } from "@/components/user-management";
 import { Label } from "@/components/ui/label";
 import {
   ALL_ROLES,
@@ -36,7 +37,7 @@ import {
   Link2,
   Link2Off,
   Store,
-} from "lucide-react";
+ UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -68,7 +69,7 @@ function RolesManagement() {
   const isAdmin = is("admin");
 
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "roles" | "audit">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "roles" | "audit" | "access">("users");
 
   // Users + roles + linked customer
   const { data: users = [], isLoading: usersLoading } = useQuery({
@@ -207,6 +208,9 @@ function RolesManagement() {
           <TabsTrigger value="audit" className="gap-1.5">
             <FileText className="size-4" /> Access Audit Log
           </TabsTrigger>
+          <TabsTrigger value="access" className="gap-1.5">
+            <UserPlus className="size-4" /> Users & Access
+          </TabsTrigger>
         </TabsList>
 
         {/* USERS TAB */}
@@ -286,6 +290,9 @@ function RolesManagement() {
         {/* AUDIT TAB */}
         <TabsContent value="audit" className="mt-4">
           <AuditLog logs={auditLogs} />
+        </TabsContent>
+        <TabsContent value="access">
+          <UserManagement />
         </TabsContent>
       </Tabs>
     </PageContainer>
