@@ -55,9 +55,26 @@ export function UserManagement() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<CreateUserForm>({
     resolver: zodResolver(createUserSchema),
+  });
+
+  const [linkedRetailerId, setLinkedRetailerId] = useState<string>("");
+  const selectedRole = watch("role");
+
+  // Retailer list (customers) for linking a retailer login
+  const { data: customers = [] } = useQuery({
+    queryKey: ["customers-for-linking"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("customers")
+        .select("id, name, shop_name, user_id")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   // Fetch users
@@ -151,6 +168,7 @@ export function UserManagement() {
           : `User created! ${data.email} can sign in now.`
       );
       reset();
+      setLinkedRetailerId("");
       setIsDialogOpen(false);
       window.location.reload();
     } catch (error) {
@@ -332,6 +350,31 @@ export function UserManagement() {
                   )}
                 </div>
               </div>
+
+              {selectedRole === "retailer" && (
+                <div className="space-y-2">
+                  <Label>Retailer (from retailer list) *</Label>
+                  <Select
+                    value={linkedRetailerId}
+                    onValueChange={setLinkedRetailerId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select retailer / shop" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customers.map((c: any) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.shop_name || c.name}
+                          {c.user_id ? " (already linked)" : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    The selected shop's data becomes this user's retailer portal.
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="password">Temporary Password *</Label>
