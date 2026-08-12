@@ -62,7 +62,8 @@ export function UserManagement() {
   });
 
   const [linkedRetailerId, setLinkedRetailerId] = useState<string>("");
-  const selectedRole = watch("role");
+  const [roleValue, setRoleValue] = useState<string>("");
+  const selectedRole = roleValue || watch("role");
 
   // Retailer list (customers) for linking a retailer login
   const { data: customers = [] } = useQuery({
