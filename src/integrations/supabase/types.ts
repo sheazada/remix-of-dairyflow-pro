@@ -973,6 +973,7 @@ export type Database = {
           created_at: string | null
           icon: string | null
           id: string
+          is_active: boolean | null
           name: string
         }
         Insert: {
@@ -980,6 +981,7 @@ export type Database = {
           created_at?: string | null
           icon?: string | null
           id?: string
+          is_active?: boolean | null
           name: string
         }
         Update: {
@@ -987,6 +989,7 @@ export type Database = {
           created_at?: string | null
           icon?: string | null
           id?: string
+          is_active?: boolean | null
           name?: string
         }
         Relationships: []
@@ -3158,6 +3161,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      my_customer_id: { Args: { _uid: string }; Returns: string }
       post_stock_adjustment: {
         Args: { _adjustment_id: string }
         Returns: undefined
