@@ -276,7 +276,7 @@ export function UserManagement() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Create New User <span className="ml-2 align-middle text-[10px] font-normal text-gray-400">build 0812c</span></DialogTitle>
+              <DialogTitle>Create New User <span className="ml-2 align-middle text-[10px] font-normal text-gray-400">build 0812d</span></DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -295,7 +295,12 @@ export function UserManagement() {
 
                 <div className="space-y-2">
                   <Label htmlFor="role">Role *</Label>
-                  <Select onValueChange={(value) => register("role").onChange({ target: { value } })}>
+                  <Select
+                    onValueChange={(value) => {
+                      setRoleValue(value);
+                      register("role").onChange({ target: { value } });
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
