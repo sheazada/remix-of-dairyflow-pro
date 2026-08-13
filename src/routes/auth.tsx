@@ -66,14 +66,24 @@ function LoginPage() {
         /* no session to clear */
       }
 
+      // SECURITY: pre-auth lookup goes through the narrow SECURITY DEFINER
+      // function get_login_account (returns only login-critical columns for
+      // one matched account) instead of an anonymous scan of public.users.
       const lookupUser = async () => {
-        let query = supabase.from("users").select("*");
-        if (data.email) {
-          query = query.eq("email", data.email);
-        } else if (data.mobile) {
-          query = query.eq("mobile", data.mobile);
+        const viaRpc = await (supabase as any)
+          .rpc("get_login_account", {
+            _email: data.email ?? null,
+            _mobile: data.mobile ?? null,
+          })
+          .maybeSingle();
+        // Until migration 017 is applied the function doesn't exist yet;
+        // fall back to the legacy anonymous lookup so login never breaks.
+        if (viaRpc.error && /get_login_account|does not exist/i.test(viaRpc.error.message)) {
+          let q = (supabase as any).from("users").select("*");
+          q = data.email ? q.eq("email", data.email) : q.eq("mobile", data.mobile);
+          return await q.single();
         }
-        return query.single();
+        return viaRpc;
       };
 
       let { data: users, error: queryError } = await lookupUser();
@@ -100,7 +110,7 @@ function LoginPage() {
         return;
       }
 
-      const user = users;
+      let user: any = users;
 
       // Check account status
       if (user.status !== "active") {
@@ -135,6 +145,15 @@ function LoginPage() {
         setIsLoading(false);
         return;
       }
+
+      // The pre-auth lookup returns only login-critical fields; now that a
+      // session exists, fetch the complete profile with the user's own token.
+      const { data: fullUser } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      if (fullUser) user = fullUser;
 
       // Get user permissions
       const { data: permissionsData } = await supabase.rpc("get_user_permissions", {
