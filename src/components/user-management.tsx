@@ -276,7 +276,7 @@ export function UserManagement() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Create New User <span className="ml-2 align-middle text-[10px] font-normal text-gray-400">build 0812d</span></DialogTitle>
+              <DialogTitle>Create New User</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
