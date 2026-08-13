@@ -93,7 +93,7 @@ function DeliveryDemand() {
   });
 
   // Fetch orders + invoice + delivery for the date
-  const { data: shopOrders = [], isLoading } = useQuery({
+  const { data: shopOrders = [], isLoading, error } = useQuery({
     queryKey: ["delivery-demand", date],
     queryFn: async () => {
       // Get orders for the date
@@ -103,7 +103,7 @@ function DeliveryDemand() {
         .gte("order_date", date)
         .lte("order_date", date + "T23:59:59")
         .neq("status", "cancelled")
-        .order("customer:customers.name", { ascending: true });
+        .order("name", { referencedTable: "customer", ascending: true });
       if (oErr) throw oErr;
 
       if (!orders || orders.length === 0) return [];
@@ -265,7 +265,14 @@ function DeliveryDemand() {
       {/* Shop cards */}
       {isLoading && <div className="text-center py-12 text-muted-foreground">Loading…</div>}
 
-      {!isLoading && filtered.length === 0 && (
+      {!isLoading && error && (
+        <Card className="p-6 text-center border-destructive/40 mb-4">
+          <div className="text-sm font-semibold text-destructive">Failed to load delivery demand</div>
+          <div className="text-xs text-muted-foreground mt-1 font-mono">{(error as Error)?.message ?? String(error)}</div>
+        </Card>
+      )}
+
+      {!isLoading && !error && filtered.length === 0 && (
         <Card className="p-12 text-center">
           <Package className="size-10 mx-auto mb-3 opacity-50" />
           <div className="text-sm font-semibold">No shops for {shortDate(date)}</div>
