@@ -84,7 +84,7 @@ function DemandConsolidation() {
       const { data, error } = await supabase
         .from("order_items")
         .select(
-          "id, product_name, product_id, quantity, rate, amount, order_id, orders!inner(order_no, customer_id, invoice:invoices!inner(id, customer:customers(id, name, shop_name, address)))"
+          "id, product_name, product_id, quantity, rate, amount, order_id, orders(order_no, customer_id, customer:customers(id, name, shop_name, address))"
         )
         .gte("orders.order_date", date)
         .lte("orders.order_date", date + "T23:59:59")
