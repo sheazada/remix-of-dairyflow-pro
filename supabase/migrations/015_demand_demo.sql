@@ -1,0 +1,41 @@
+-- Demo data for Demand Consolidation / Pickup from Sudha (today's date).
+-- Retailer orders for today + a saved procurement plan with adjustments
+-- (buffer +ve = extra for leakage/damage/extra demand; -ve = use own stock).
+
+-- ---------- Today's retailer orders ----------
+INSERT INTO public.orders (id, order_no, customer_id, order_date, status, subtotal, total) VALUES
+ ('d1000000-0000-4000-8000-000000000d11','ORD-1101','d1000000-0000-4000-8000-000000000c01',CURRENT_DATE,'pending',4635,4635),
+ ('d1000000-0000-4000-8000-000000000d12','ORD-1102','d1000000-0000-4000-8000-000000000c03',CURRENT_DATE,'pending',3220,3220),
+ ('d1000000-0000-4000-8000-000000000d13','ORD-1103','d1000000-0000-4000-8000-000000000c05',CURRENT_DATE,'pending',2960,2960),
+ ('d1000000-0000-4000-8000-000000000d14','ORD-1104','d1000000-0000-4000-8000-000000000c02',CURRENT_DATE,'approved',1940,1940)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.order_items (id, order_id, product_id, product_name, quantity, rate, amount) VALUES
+ ('d1000000-0000-4000-8000-000000000e11','d1000000-0000-4000-8000-000000000d11','d1000000-0000-4000-8000-000000000a01','Sudha Toned Milk 500ml',150,25,3750),
+ ('d1000000-0000-4000-8000-000000000e12','d1000000-0000-4000-8000-000000000d11','d1000000-0000-4000-8000-000000000a03','Sudha Dahi 400g',25,36,900),
+ ('d1000000-0000-4000-8000-000000000e13','d1000000-0000-4000-8000-000000000d12','d1000000-0000-4000-8000-000000000a01','Sudha Toned Milk 500ml',100,25,2500),
+ ('d1000000-0000-4000-8000-000000000e14','d1000000-0000-4000-8000-000000000d12','d1000000-0000-4000-8000-000000000a05','Sudha Lassi 200ml',40,18,720),
+ ('d1000000-0000-4000-8000-000000000e15','d1000000-0000-4000-8000-000000000d13','d1000000-0000-4000-8000-000000000a02','Sudha Full Cream Milk 500ml',80,28,2240),
+ ('d1000000-0000-4000-8000-000000000e16','d1000000-0000-4000-8000-000000000d13','d1000000-0000-4000-8000-000000000a03','Sudha Dahi 400g',20,36,720),
+ ('d1000000-0000-4000-8000-000000000e17','d1000000-0000-4000-8000-000000000d14','d1000000-0000-4000-8000-000000000a02','Sudha Full Cream Milk 500ml',50,28,1400),
+ ('d1000000-0000-4000-8000-000000000e18','d1000000-0000-4000-8000-000000000d14','d1000000-0000-4000-8000-000000000a05','Sudha Lassi 200ml',30,18,540)
+ON CONFLICT (id) DO NOTHING;
+
+-- ---------- Delivery cycle + saved consolidation for today ----------
+INSERT INTO public.delivery_cycles (id, cycle_code, order_date, delivery_date, delivery_shift, cutoff_at, status)
+VALUES ('d1000000-0000-4000-8000-000000000dc1','CYC-DEMO-1',CURRENT_DATE,CURRENT_DATE,'morning',now() + interval '6 hours','open')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.demand_consolidations (id, consolidation_no, delivery_cycle_id, consolidation_date, status)
+VALUES ('d1000000-0000-4000-8000-000000000db1','DC-DEMO-1','d1000000-0000-4000-8000-000000000dc1',CURRENT_DATE,'draft')
+ON CONFLICT (id) DO NOTHING;
+
+-- Saved procurement plan: ordered qty from retailers + manual adjustments
+INSERT INTO public.demand_consolidation_items
+ (id, demand_consolidation_id, product_id, product_name, total_ordered_qty, buffer_qty, final_procurement_qty, unit_price, total_value)
+VALUES
+ ('d1000000-0000-4000-8000-000000000f01','d1000000-0000-4000-8000-000000000db1','d1000000-0000-4000-8000-000000000a01','Sudha Toned Milk 500ml',250,20,270,25,6750),
+ ('d1000000-0000-4000-8000-000000000f02','d1000000-0000-4000-8000-000000000db1','d1000000-0000-4000-8000-000000000a02','Sudha Full Cream Milk 500ml',130,-30,100,28,2800),
+ ('d1000000-0000-4000-8000-000000000f03','d1000000-0000-4000-8000-000000000db1','d1000000-0000-4000-8000-000000000a03','Sudha Dahi 400g',45,5,50,36,1800),
+ ('d1000000-0000-4000-8000-000000000f04','d1000000-0000-4000-8000-000000000db1','d1000000-0000-4000-8000-000000000a05','Sudha Lassi 200ml',70,0,70,18,1260)
+ON CONFLICT (id) DO NOTHING;
