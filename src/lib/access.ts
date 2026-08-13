@@ -45,6 +45,33 @@ export function isRetailerRole(roles: string[]) {
   return roles.includes("retailer") || roles.includes("retailer_user");
 }
 
+/**
+ * Map public.users.role (business vocabulary) to the access-layer role
+ * vocabulary. Without this, roles like "salesman"/"delivery_boy" are not
+ * recognised by landingForRoles/primaryStaffRole and staff get bounced
+ * back to /auth after login.
+ */
+export function mapUserRoleToAccessRole(role: string): AppRole {
+  switch (role) {
+    case "distributor":
+      return "admin";
+    case "manager":
+      return "manager";
+    case "accountant":
+      return "manager";
+    case "salesman":
+      return "salesperson";
+    case "delivery_boy":
+      return "driver";
+    case "warehouse":
+      return "helper";
+    case "retailer":
+      return "retailer";
+    default:
+      return role as AppRole;
+  }
+}
+
 export function primaryStaffRole(roles: string[]): StaffRole | null {
   const order: StaffRole[] = ["admin", "manager", "salesperson", "driver", "helper"];
   return order.find((r) => roles.includes(r)) ?? null;

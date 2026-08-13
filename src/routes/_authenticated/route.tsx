@@ -9,6 +9,7 @@ import {
   canAccessPath,
   isRetailerRole,
   landingForRoles,
+  mapUserRoleToAccessRole,
   requiredPermissionsForPath,
   type StaffRole,
 } from "@/lib/access";
@@ -55,9 +56,10 @@ export const Route = createFileRoute("/_authenticated")({
     }
 
     // 3. Resolve roles (for backward compatibility).
-    // The business owner account has public.users.role = 'distributor';
-    // the access layer treats it as a full admin.
-    const roles = [user.role === "distributor" ? "admin" : user.role];
+    // public.users.role uses the business vocabulary (distributor, salesman,
+    // delivery_boy, warehouse, accountant); the access layer uses the app
+    // vocabulary (admin, salesperson, driver, helper, manager).
+    const roles = [mapUserRoleToAccessRole(user.role)];
 
     // 4. Retailers never belong in the staff app.
     if (isRetailerRole(roles)) throw redirect({ to: "/retailer" });
