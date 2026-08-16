@@ -18,7 +18,18 @@ export const Route = createFileRoute("/retailer")({
       .from("user_roles")
       .select("role")
       .eq("user_id", data.user.id);
-    const roles = (roleRows ?? []).map((r) => r.role as string);
+    let roles = (roleRows ?? []).map((r) => r.role as string);
+
+    // Fallback: accounts created without a user_roles row would otherwise
+    // bounce between /retailer and /dashboard. Trust public.users.role.
+    if (roles.length === 0) {
+      const { data: me } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", data.user.id)
+        .maybeSingle();
+      if (me?.role) roles = [me.role as string];
+    }
 
     if (!isRetailerRole(roles)) {
       logAccessEvent({
