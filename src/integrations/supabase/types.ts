@@ -2898,7 +2898,6 @@ export type Database = {
           locked_until: string | null
           mobile: string | null
           mobile_verified: boolean | null
-          password_hash: string
           retailer_id: string | null
           role: string
           status: string
@@ -2920,7 +2919,6 @@ export type Database = {
           locked_until?: string | null
           mobile?: string | null
           mobile_verified?: boolean | null
-          password_hash: string
           retailer_id?: string | null
           role: string
           status?: string
@@ -2942,7 +2940,6 @@ export type Database = {
           locked_until?: string | null
           mobile?: string | null
           mobile_verified?: boolean | null
-          password_hash?: string
           retailer_id?: string | null
           role?: string
           status?: string

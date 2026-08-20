@@ -65,7 +65,6 @@ function SetupPage() {
               status: "active",
               email_verified: true,
               distributor_id: distributorId,
-              password_hash: "supabase-managed",
             });
 
             // Ensure profile exists
@@ -100,7 +99,6 @@ function SetupPage() {
           status: "active",
           email_verified: true,
           distributor_id: distributorId,
-          password_hash: "supabase-managed",
         });
 
         // Ensure profile exists

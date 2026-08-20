@@ -134,7 +134,6 @@ export function UserManagement() {
         distributor_id: distributor.id,
         email: data.email,
         mobile: data.mobile || null,
-        password_hash: "supabase-managed",
         full_name: data.full_name,
         role: data.role,
         status: needsConfirm ? "pending_verification" : "active",
