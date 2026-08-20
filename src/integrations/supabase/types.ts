@@ -3084,6 +3084,18 @@ export type Database = {
             }[]
           }
       get_customer_by_user_email: { Args: { _email: string }; Returns: string }
+      get_login_account: {
+        Args: { _email: string; _mobile: string }
+        Returns: {
+          distributor_id: string
+          email: string
+          full_name: string
+          id: string
+          mobile: string
+          role: string
+          status: string
+        }[]
+      }
       get_near_expiry_stock: {
         Args: { _days?: number }
         Returns: {
