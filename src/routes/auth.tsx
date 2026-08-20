@@ -219,8 +219,8 @@ function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600 mb-4">
             <Milk className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">CreamRoute</h1>
-          <p className="text-gray-600">Business Login</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">DairyFlow Pro</h1>
+          <p className="text-gray-600">Distribution ERP — Business Login</p>
         </div>
 
         {/* Login Form */}
@@ -302,6 +302,7 @@ function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -349,7 +350,7 @@ function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-500 mt-8">
-          © 2026 CreamRoute. All rights reserved.
+          © 2026 DairyFlow Pro. All rights reserved.
         </p>
       </div>
     </div>

@@ -1,0 +1,3 @@
+# DairyFlow Pro is a private business ERP — not for public indexing.
+User-agent: *
+Disallow: /

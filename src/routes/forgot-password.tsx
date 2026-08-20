@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Mail, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -89,7 +89,7 @@ function ForgotPasswordPage() {
             {isSent ? (
               <>
                 <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                <CardTitle>Check Your Email</CardTitle>
+                <h1 className="text-2xl font-semibold leading-none tracking-tight">Check Your Email</h1>
                 <CardDescription>
                   We've sent password reset instructions to your email address
                 </CardDescription>
@@ -97,7 +97,7 @@ function ForgotPasswordPage() {
             ) : (
               <>
                 <Mail className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                <CardTitle>Forgot Password</CardTitle>
+                <h1 className="text-2xl font-semibold leading-none tracking-tight">Forgot Password</h1>
                 <CardDescription>
                   Enter your email address and we'll send you instructions to reset your password
                 </CardDescription>
@@ -166,7 +166,7 @@ function ForgotPasswordPage() {
         </Card>
 
         <p className="text-center text-xs text-gray-500 mt-8">
-          © 2026 CreamRoute. All rights reserved.
+          © 2026 DairyFlow Pro. All rights reserved.
         </p>
       </div>
     </div>

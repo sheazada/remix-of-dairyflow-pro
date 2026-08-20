@@ -133,7 +133,7 @@ function SetupPage() {
           <CardHeader className="text-center">
             <CardTitle>Initial Setup</CardTitle>
             <CardDescription>
-              Create the first admin user for CreamRoute
+              Create the first admin user for DairyFlow Pro
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

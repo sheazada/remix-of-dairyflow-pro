@@ -77,25 +77,71 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+const SECTION_TITLES: [string, string][] = [
+  ["/auth", "Sign in"],
+  ["/forgot-password", "Reset password"],
+  ["/verify-email", "Verify email"],
+  ["/dashboard", "Dashboard"],
+  ["/orders", "Orders"],
+  ["/demand-consolidation", "Pickup from Sudha"],
+  ["/delivery-demand", "Delivery Demand"],
+  ["/invoices", "Invoices"],
+  ["/payments", "Payments"],
+  ["/cash-reconciliation", "Cash Reconciliation"],
+  ["/reconcile", "Reconcile"],
+  ["/deliveries", "Deliveries"],
+  ["/delivery-status", "Delivery Status"],
+  ["/route-optimization", "Route Optimization"],
+  ["/routes", "Route Planning"],
+  ["/products", "Products"],
+  ["/inventory", "Inventory"],
+  ["/customers", "Customers"],
+  ["/customer-ledger", "Customer Ledger"],
+  ["/suppliers", "Suppliers"],
+  ["/purchases", "Purchases"],
+  ["/crates", "Crates"],
+  ["/claims", "Claims to Sudha"],
+  ["/reports", "Reports"],
+  ["/expenses", "Expenses"],
+  ["/notifications", "Notifications"],
+  ["/payment-reminders", "Payment Reminders"],
+  ["/share-log", "Share Log"],
+  ["/admin/roles", "Roles & Permissions"],
+  ["/admin", "Administration"],
+  ["/settings", "Settings"],
+  ["/retailer/order", "Place Order"],
+  ["/retailer/orders", "My Orders"],
+  ["/retailer/ledger", "My Ledger"],
+  ["/retailer/profile", "My Profile"],
+  ["/retailer", "Retailer Portal"],
+];
+
+function titleForPath(path: string): string {
+  const hit = SECTION_TITLES.find(([p]) => path === p || path.startsWith(p + "/"));
+  return hit ? `${hit[1]} — DairyFlow Pro` : "DairyFlow Pro — Distribution ERP";
+}
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  head: (ctx: any) => {
+    const title = titleForPath(ctx?.location?.pathname ?? "/");
+    return {
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "DairyFlow Pro — Distribution ERP" },
+      { title },
       {
         name: "description",
         content:
           "Modern ERP for dairy distributors — customers, inventory, GST invoicing, payments, deliveries and reports.",
       },
-      { property: "og:title", content: "DairyFlow Pro — Distribution ERP" },
+      { property: "og:title", content: title },
       {
         property: "og:description",
         content: "Modern ERP for dairy distributors — customers, inventory, GST invoicing, payments, deliveries and reports.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "DairyFlow Pro — Distribution ERP" },
+      { name: "twitter:title", content: title },
       { name: "twitter:description", content: "Modern ERP for dairy distributors — customers, inventory, GST invoicing, payments, deliveries and reports." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/020ad1fb-b87f-4f9f-975a-691f7d0ad2a8" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/020ad1fb-b87f-4f9f-975a-691f7d0ad2a8" },
@@ -129,7 +175,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         `,
       },
     ],
-  }),
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
