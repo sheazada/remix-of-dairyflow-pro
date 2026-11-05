@@ -26,6 +26,61 @@ export const Route = createFileRoute("/auth")({
   component: LoginPage,
 });
 
+// ── Dev quick-login constants ──────────────────────────────────────
+// Try these passwords in order (matches passwords used across migrations)
+const DEV_PASSWORDS = ["Demo@1234", "Admin@1234", "Demo@1234!#", "Passw0rd!"];
+
+const DEV_ACCOUNTS: { label: string; email: string }[] = [
+  { label: "Admin", email: "admin@demo.dairyflow.app" },
+  { label: "Manager", email: "manager@demo.dairyflow.app" },
+  { label: "Salesperson", email: "sales@demo.dairyflow.app" },
+  { label: "Driver", email: "driver@demo.dairyflow.app" },
+  { label: "Helper", email: "helper@demo.dairyflow.app" },
+  { label: "Retailer", email: "retailer@demo.dairyflow.app" },
+];
+
+// Populates localStorage with session data so the route guard lets us through
+async function storeSessionForUser(user: any): Promise<{ role: string }> {
+  const role = user.role ?? "salesperson";
+
+  // Permissions
+  let userPermissions: any[] = [];
+  try {
+    const { data } = await (supabase as any).rpc("get_user_permissions", {
+      _user_id: user.id,
+    });
+    userPermissions = (data ?? []).map((p: any) => ({
+      name: p.permission_name,
+      label: p.permission_label,
+      category: p.category,
+    }));
+  } catch (err) {
+    console.warn("[auth] get_user_permissions failed, using role-only fallback:", err);
+  }
+
+  localStorage.setItem("creamroute_permissions", JSON.stringify(userPermissions));
+  localStorage.setItem("creamroute_user", JSON.stringify({ ...user, permissions: userPermissions }));
+
+  // Distributor
+  try {
+    const { data: dist } = await supabase
+      .from("distributors")
+      .select("*")
+      .eq("id", user.distributor_id)
+      .maybeSingle();
+    if (dist) {
+      localStorage.setItem("creamroute_distributor", JSON.stringify(dist));
+    } else {
+      const { data: anyDist } = await supabase.from("distributors").select("*").limit(1).maybeSingle();
+      if (anyDist) localStorage.setItem("creamroute_distributor", JSON.stringify(anyDist));
+    }
+  } catch {
+    /* ignore */
+  }
+
+  return { role };
+}
+
 const loginSchema = z.object({
   email: z.string().optional(),
   mobile: z.string().optional(),
@@ -155,37 +210,7 @@ function LoginPage() {
         .single();
       if (fullUser) user = fullUser;
 
-      // Get user permissions
-      const { data: permissionsData } = await supabase.rpc("get_user_permissions", {
-        _user_id: user.id,
-      });
-
-      const userPermissions = (permissionsData ?? []).map((p: any) => ({
-        name: p.permission_name,
-        label: p.permission_label,
-        category: p.category,
-      }));
-
-      // The authenticated layout guards routes with this key
-      localStorage.setItem("creamroute_permissions", JSON.stringify(userPermissions));
-
-      // Store user data
-      localStorage.setItem("creamroute_user", JSON.stringify({
-        ...user,
-        id: authData.user?.id ?? user.id,
-        permissions: userPermissions,
-      }));
-
-      // Get distributor
-      const { data: distributor } = await supabase
-        .from("distributors")
-        .select("*")
-        .eq("id", user.distributor_id)
-        .single();
-
-      if (distributor) {
-        localStorage.setItem("creamroute_distributor", JSON.stringify(distributor));
-      }
+      const { role } = await storeSessionForUser(user);
 
       toast.success(`Welcome back, ${user.full_name}!`);
 
@@ -200,12 +225,75 @@ function LoginPage() {
         retailer: "/retailer/orders",
       };
 
-      const dashboard = roleDashboards[user.role] || "/dashboard";
+      const dashboard = roleDashboards[role] || "/dashboard";
       navigate({ to: dashboard });
 
     } catch (error) {
       setError("Network error. Please try again.");
       toast.error("Network error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const quickLogin = async (devEmail: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Clear any stale session first
+      try { await supabase.auth.signOut(); } catch { /* ignore */ }
+
+      // Try each known dev password until one works
+      let result: any = null;
+      for (const pw of DEV_PASSWORDS) {
+        const res = await supabase.auth.signInWithPassword({ email: devEmail, password: pw });
+        if (!res.error) { result = res; break; }
+      }
+      if (!result || result.error) {
+        throw result?.error ?? new Error("Invalid credentials");
+      }
+
+      const authUser = result.data?.user;
+      if (!authUser) throw new Error("No user returned");
+
+      // Resolve the public.users row and store session
+      const { data: fullUser } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", authUser.id)
+        .single();
+
+      if (!fullUser) {
+        setError(`No account row found for ${devEmail}. Create it via SQL or the admin panel.`);
+        toast.error("Dev login failed: user row missing");
+        return;
+      }
+
+      const { role } = await storeSessionForUser(fullUser);
+
+      toast.success(`Signed in as ${devEmail.split("@")[0]} (${role})`);
+
+      const roleDashboards: Record<string, string> = {
+        distributor: "/dashboard",
+        admin: "/dashboard",
+        manager: "/dashboard",
+        accountant: "/dashboard",
+        warehouse: "/inventory",
+        salesman: "/orders",
+        salesperson: "/orders",
+        delivery_boy: "/deliveries",
+        driver: "/deliveries",
+        helper: "/deliveries",
+        retailer: "/retailer/orders",
+      };
+      const dashboard = roleDashboards[role] || "/dashboard";
+      navigate({ to: dashboard });
+    } catch (err: any) {
+      console.error("[quickLogin]", err);
+      const msg = err?.message ?? "Dev login failed";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -345,6 +433,36 @@ function LoginPage() {
             <p className="text-center text-sm text-gray-500 mt-6">
               Don't have an account? Contact your distributor administrator.
             </p>
+
+            {/* ── Dev quick-login panel ───────────────────────────────── */}
+            <div className="mt-6 rounded-lg border border-dashed border-amber-300 bg-amber-50 p-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-amber-900">Dev quick login</p>
+                  <p className="text-[11px] text-amber-800/80">
+                    One-click sign in per role. Shared password: <code className="font-mono text-amber-900">Demo@1234</code>
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {DEV_ACCOUNTS.map((a) => (
+                  <Button
+                    key={a.email}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoading}
+                    className="text-xs"
+                    onClick={() => quickLogin(a.email)}
+                  >
+                    {a.label}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-[10px] text-amber-800/70">
+                For development only. Create these accounts via <code className="font-mono">supabase/migrations/011_demo_data.sql</code> or the SQL editor.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
