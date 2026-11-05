@@ -15,59 +15,112 @@ import {
 } from "@/lib/access";
 import { logAccessEvent } from "@/lib/audit.server";
 
+/**
+ * SECURITY FIX (Phase 1, Part B): Verify Supabase Auth session instead of
+ * trusting localStorage. The browser can forge localStorage trivially.
+ *
+ * Flow:
+ * 1. Call supabase.auth.getSession() which validates the JWT with Supabase.
+ * 2. Use the verified user ID to look up the public.users row.
+ * 3. Check account status from the DB (not from localStorage).
+ * 4. Fetch roles and permissions from the DB (not from localStorage).
+ * 5. Resolve distributor from public.users.distributor_id (trusted FK).
+ */
+async function resolveSession() {
+  // 1. Verify the session with Supabase Auth
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    console.warn("[auth] getSession error:", sessionError.message);
+    return null;
+  }
+  if (!session?.user) return null;
+
+  const authUserId = session.user.id;
+
+  // 2. Look up the public.users row by the verified auth user ID
+  const { data: user, error: userError } = await supabase
+    .from("users")
+    .select("id, distributor_id, email, mobile, full_name, role, status, email_verified")
+    .eq("id", authUserId)
+    .single();
+
+  if (userError || !user) {
+    console.warn("[auth] public.users lookup failed:", userError?.message);
+    return null;
+  }
+
+  // 3. Account status check (from trusted DB record, not localStorage)
+  if (user.status !== "active") {
+    await supabase.auth.signOut();
+    return null;
+  }
+
+  // 4. Fetch roles from trusted DB
+  const { data: roleRows } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id);
+  const roles = (roleRows ?? []).map((r: any) => r.role);
+
+  // 5. Fetch permissions via SECURITY DEFINER RPC
+  let permissions: any[] = [];
+  try {
+    const { data: permData } = await supabase.rpc("get_user_permissions", {
+      _user_id: user.id,
+    });
+    permissions = (permData ?? []).map((p: any) => ({
+      name: p.permission_name,
+      label: p.permission_label,
+      category: p.category,
+    }));
+  } catch (err) {
+    console.warn("[auth] get_user_permissions failed:", err);
+  }
+
+  // 6. Resolve distributor from trusted FK
+  let distributor: any = null;
+  if (user.distributor_id) {
+    const { data: dist } = await supabase
+      .from("distributors")
+      .select("*")
+      .eq("id", user.distributor_id)
+      .maybeSingle();
+    distributor = dist ?? null;
+  }
+
+  return { user, distributor, roles, permissions };
+}
+
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    // 1. Check if user is logged in (using localStorage for now)
-    const userStr = localStorage.getItem("creamroute_user");
-    const distributorStr = localStorage.getItem("creamroute_distributor");
+    // 1. Verify session with Supabase Auth (NOT localStorage)
+    const session = await resolveSession();
 
-    if (!userStr || !distributorStr) {
-      throw redirect({ to: "/auth" });
-    }
-
-    const user = JSON.parse(userStr);
-    const distributor = JSON.parse(distributorStr);
-    let permissions = JSON.parse(localStorage.getItem("creamroute_permissions") || "[]");
-
-    // Self-heal: older logins predate the permissions key; refetch if empty.
-    if (!Array.isArray(permissions) || permissions.length === 0) {
-      try {
-        const { data } = await supabase.rpc("get_user_permissions", {
-          _user_id: user.id,
-        });
-        permissions = (data ?? []).map((p: any) => ({
-          name: p.permission_name,
-          label: p.permission_label,
-          category: p.category,
-        }));
-        localStorage.setItem("creamroute_permissions", JSON.stringify(permissions));
-      } catch (err) {
-        console.warn("[auth] failed to refetch permissions:", err);
-      }
-    }
-
-    // 2. Check account status
-    if (user.status !== "active") {
+    if (!session) {
+      // Invalidate any stale localStorage — defense in depth
       localStorage.removeItem("creamroute_user");
       localStorage.removeItem("creamroute_distributor");
       localStorage.removeItem("creamroute_permissions");
       throw redirect({ to: "/auth" });
     }
 
-    // 3. Resolve roles (for backward compatibility).
-    // public.users.role uses the business vocabulary (distributor, salesman,
-    // delivery_boy, warehouse, accountant); the access layer uses the app
-    // vocabulary (admin, salesperson, driver, helper, manager).
-    const roles = [mapUserRoleToAccessRole(user.role)];
+    const { user, distributor, roles, permissions } = session;
 
-    // 4. Retailers never belong in the staff app.
-    if (isRetailerRole(roles)) throw redirect({ to: "/retailer" });
+    // 2. Map business role to access-layer role
+    const accessRoles = roles.map(mapUserRoleToAccessRole).filter(Boolean);
 
-    const landing = landingForRoles(roles);
+    // 3. Retailers never belong in the staff app
+    if (isRetailerRole(accessRoles)) throw redirect({ to: "/retailer" });
+
+    const landing = landingForRoles(accessRoles);
     if (landing === "/auth") throw redirect({ to: "/auth", search: { next: undefined } });
 
-    // 5. Permission check.
+    // 4. Permission check (default-deny for unknown routes — Part C)
     const path = location.pathname;
     const allowed = canAccessPath(path, permissions.map((p: any) => p.name));
     const required = requiredPermissionsForPath(path);
@@ -78,7 +131,7 @@ export const Route = createFileRoute("/_authenticated")({
           eventType: "access_denied",
           userId: user.id,
           userEmail: user.email ?? null,
-          userRoles: roles,
+          userRoles: accessRoles,
           requiredRoles: required,
           routePath: path,
           reason: `User permissions [${permissions.map((p: any) => p.name).join(",")}] missing required [${required.join(",")}]`,
@@ -87,12 +140,12 @@ export const Route = createFileRoute("/_authenticated")({
 
       throw new AccessDeniedError({
         requiredRoles: required,
-        userRoles: roles,
+        userRoles: accessRoles,
         attemptedPath: path,
       });
     }
 
-    return { user, distributor, roles, permissions };
+    return { user, distributor, roles: accessRoles, permissions };
   },
   errorComponent: ({ error }) => {
     if (error instanceof AccessDeniedError) {

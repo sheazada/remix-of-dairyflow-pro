@@ -40,29 +40,19 @@ const DEV_ACCOUNTS: { label: string; email: string }[] = [
   { label: "Retailer",  email: "retailer@demo.dairyflow.app" },
 ];
 
-// Populates localStorage with session data so the route guard lets us through
-async function storeSessionForUser(user: any): Promise<{ role: string }> {
+/**
+ * SECURITY FIX (Phase 1, Part B): After Supabase Auth signs in, we no longer
+ * write user/role/permissions to localStorage for authorization decisions.
+ * The route guard now verifies the Supabase session via getSession().
+ *
+ * This function only caches distributor info for UI convenience (sidebar, etc.).
+ * It NEVER controls access — the route guard does that via the verified session.
+ */
+async function cacheDistributorForUI(user: any): Promise<{ role: string }> {
   const role = user.role ?? "salesperson";
 
-  // Permissions
-  let userPermissions: any[] = [];
-  try {
-    const { data } = await (supabase as any).rpc("get_user_permissions", {
-      _user_id: user.id,
-    });
-    userPermissions = (data ?? []).map((p: any) => ({
-      name: p.permission_name,
-      label: p.permission_label,
-      category: p.category,
-    }));
-  } catch (err) {
-    console.warn("[auth] get_user_permissions failed, using role-only fallback:", err);
-  }
-
-  localStorage.setItem("creamroute_permissions", JSON.stringify(userPermissions));
-  localStorage.setItem("creamroute_user", JSON.stringify({ ...user, permissions: userPermissions }));
-
-  // Distributor
+  // Cache distributor for UI components (sidebar header, etc.)
+  // This is NOT used for authorization — only for display.
   try {
     const { data: dist } = await supabase
       .from("distributors")
@@ -76,7 +66,7 @@ async function storeSessionForUser(user: any): Promise<{ role: string }> {
       if (anyDist) localStorage.setItem("creamroute_distributor", JSON.stringify(anyDist));
     }
   } catch {
-    /* ignore */
+    /* UI cache failure is non-fatal */
   }
 
   return { role };
@@ -211,7 +201,7 @@ function LoginPage() {
         .single();
       if (fullUser) user = fullUser;
 
-      const { role } = await storeSessionForUser(user);
+      await cacheDistributorForUI(user);
 
       toast.success(`Welcome back, ${user.full_name}!`);
 
@@ -271,9 +261,9 @@ function LoginPage() {
         return;
       }
 
-      const { role } = await storeSessionForUser(fullUser);
+      await cacheDistributorForUI(fullUser);
 
-      toast.success(`Signed in as ${devEmail.split("@")[0]} (${role})`);
+      toast.success(`Signed in as ${devEmail.split("@")[0]} (${fullUser.role})`);
 
       const roleDashboards: Record<string, string> = {
         distributor: "/dashboard",

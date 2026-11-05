@@ -65,16 +65,16 @@ function DemandConsolidation() {
     Record<string, { buffer: number; final: number }>
   >({});
 
-  // Current user role (distributor counts as admin). Only admin/manager may edit the plan.
+  // SECURITY FIX (Phase 1, Part B): Read role from verified route context,
+  // not from localStorage (which the user can forge).
+  const ctx = Route.useRouteContext();
   const me = useMemo(() => {
-    try {
-      const u = JSON.parse(localStorage.getItem("creamroute_user") || "null");
-      if (!u) return { role: "" };
-      return { role: u.role === "distributor" ? "admin" : (u.role as string) };
-    } catch {
-      return { role: "" };
-    }
-  }, []);
+    const roles = (ctx.roles as string[]) ?? [];
+    // Map business roles to access roles (admin/distributor = admin)
+    if (roles.includes("admin")) return { role: "admin" };
+    if (roles.includes("manager")) return { role: "manager" };
+    return { role: roles[0] ?? "" };
+  }, [ctx.roles]);
   const canEdit = me.role === "admin" || me.role === "manager";
 
   // Fetch all order items for the date with customer info

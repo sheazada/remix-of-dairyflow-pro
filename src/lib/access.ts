@@ -87,8 +87,12 @@ export function landingForRoles(roles: string[]): string {
 }
 
 /**
- * Check if user has all required permissions for a path
- * Returns true if user has at least one of the required permissions
+ * SECURITY FIX (Phase 1, Part C): Default-deny for unknown routes.
+ *
+ * Previously: unknown routes returned true (default open) — a massive risk
+ * because any newly-added page would be accessible to anyone.
+ *
+ * Now: unknown routes are denied unless explicitly in ROUTE_ACCESS.
  */
 export function canAccessPath(
   pathname: string,
@@ -99,8 +103,8 @@ export function canAccessPath(
     (r) => pathname === r.prefix || pathname.startsWith(r.prefix + "/")
   ).sort((a, b) => b.prefix.length - a.prefix.length)[0];
 
-  // If no rule found, allow access (default open)
-  if (!match) return true;
+  // SECURITY: Default-deny. If no rule matches, the route is NOT accessible.
+  if (!match) return false;
 
   // Check if user has at least one required permission
   return match.permissions.some((perm) => userPermissions.includes(perm));
