@@ -27,16 +27,17 @@ export const Route = createFileRoute("/auth")({
 });
 
 // ── Dev quick-login constants ──────────────────────────────────────
-// Try these passwords in order (matches passwords used across migrations)
-const DEV_PASSWORDS = ["Demo@1234", "Admin@1234", "Demo@1234!#", "Passw0rd!"];
+// Matches supabase/migrations/021_demo_login_accounts.sql
+// Password for ALL demo accounts: Admin@1234
+const DEV_PASSWORDS = ["Admin@1234"];
 
 const DEV_ACCOUNTS: { label: string; email: string }[] = [
-  { label: "Admin", email: "admin@demo.dairyflow.app" },
-  { label: "Manager", email: "manager@demo.dairyflow.app" },
-  { label: "Salesperson", email: "sales@demo.dairyflow.app" },
-  { label: "Driver", email: "driver@demo.dairyflow.app" },
-  { label: "Helper", email: "helper@demo.dairyflow.app" },
-  { label: "Retailer", email: "retailer@demo.dairyflow.app" },
+  { label: "Admin",     email: "admin@demo.dairyflow.app"    },
+  { label: "Manager",   email: "manager@demo.dairyflow.app"  },
+  { label: "Sales",     email: "sales@demo.dairyflow.app"    },
+  { label: "Driver",    email: "driver@demo.dairyflow.app"   },
+  { label: "Helper",    email: "helper@demo.dairyflow.app"   },
+  { label: "Retailer",  email: "retailer@demo.dairyflow.app" },
 ];
 
 // Populates localStorage with session data so the route guard lets us through
