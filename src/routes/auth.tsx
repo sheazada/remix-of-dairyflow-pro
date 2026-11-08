@@ -23,6 +23,16 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
+  head: () => ({
+    meta: [
+      { title: "Sign In | DairyFlow Pro" },
+      { name: "description", content: "Sign in to your DairyFlow Pro distribution account." },
+      { property: "og:title", content: "Sign In | DairyFlow Pro" },
+      { property: "og:description", content: "Sign in to your DairyFlow Pro distribution account." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: LoginPage,
 });
 
@@ -201,7 +211,7 @@ function LoginPage() {
         .single();
       if (fullUser) user = fullUser;
 
-      await cacheDistributorForUI(user);
+      const { role } = await cacheDistributorForUI(user);
 
       toast.success(`Welcome back, ${user.full_name}!`);
 
@@ -261,7 +271,7 @@ function LoginPage() {
         return;
       }
 
-      await cacheDistributorForUI(fullUser);
+      const { role } = await cacheDistributorForUI(fullUser);
 
       toast.success(`Signed in as ${devEmail.split("@")[0]} (${fullUser.role})`);
 
