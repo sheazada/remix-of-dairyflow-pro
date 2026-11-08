@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.0";
-import { hash } from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
+import { genSalt, hash } from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
 import { Resend } from "https://esm.sh/resend@2.1.0";
 
 const corsHeaders = {
@@ -73,8 +73,8 @@ serve(async (req) => {
     }
 
     // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(password, salt);
+    const salt = await genSalt(10);
+    const password_hash = await hash(password, salt);
 
     // Create user
     const { data: user, error: userError } = await supabase
@@ -194,7 +194,7 @@ serve(async (req) => {
 
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unexpected error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
