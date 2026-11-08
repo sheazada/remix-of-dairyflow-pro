@@ -16,8 +16,27 @@ if (typeof window === "undefined" && typeof (globalThis as any).WebSocket === "u
   }
 }
 
-const SUPABASE_URL = "https://otqdtqbrigivwxmtijyp.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90cWR0cWJyaWdpdnd4bXRpanlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNDUxODUsImV4cCI6MjEwMTkyMTE4NX0.bu2Gt6T4TaZrtcFJYZYLXY7bxRzbce-kb9kMVaAW624";
+// SECURITY: read credentials from env vars (injected at build time by Vite
+// from .env / VITE_ prefixed vars). The publishable/anon key is safe to
+// ship to browsers — it only grants RLS-scoped access. The service-role
+// key MUST NOT be referenced here.
+const SUPABASE_URL = (
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL) ||
+  (typeof process !== "undefined" && process.env?.VITE_SUPABASE_URL) ||
+  ""
+) as string;
+const SUPABASE_PUBLISHABLE_KEY = (
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY) ||
+  (typeof process !== "undefined" && process.env?.VITE_SUPABASE_PUBLISHABLE_KEY) ||
+  ""
+) as string;
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.warn(
+    "[supabase/client] Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY. " +
+    "Set them in .env (see .env.example)."
+  );
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";

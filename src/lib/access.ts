@@ -151,7 +151,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<StaffRole, string[]> = {
     "view_reports", "view_orders", "view_invoices", "view_payments",
     "reconcile_payments", "view_deliveries", "manage_deliveries",
     "view_products", "view_inventory", "view_customers", "view_ledger",
-    "view_audit_logs", "manage_roles", "manage_settings",
+    "view_audit_logs", "manage_users", "manage_roles", "manage_settings",
   ],
   manager: [
     "view_reports", "view_orders", "view_invoices", "view_payments",

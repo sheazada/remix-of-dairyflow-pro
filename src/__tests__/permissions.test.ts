@@ -49,9 +49,15 @@ describe("canAccessPath", () => {
     expect(canAccessPath("/customers", perms("salesperson"))).toBe(true);
   });
 
-  it("unknown paths are allowed by default (no accidental lockouts)", () => {
-    expect(canAccessPath("/some-new-future-route", perms("driver"))).toBe(true);
-    expect(canAccessPath("/foo/bar", perms("salesperson"))).toBe(true);
+  // SECURITY FIX: unknown paths are now DENIED by default (default-deny).
+  // The previous test asserted the insecure behaviour (default-allow).
+  it("unknown paths are denied by default (default-deny)", () => {
+    expect(canAccessPath("/some-new-future-route", perms("driver"))).toBe(false);
+    expect(canAccessPath("/foo/bar", perms("salesperson"))).toBe(false);
+    // Even admin cannot reach an unlisted route — admins must be added
+    // to ROUTE_ACCESS explicitly for each new route. `/admin/secret` matches
+    // the `/admin` prefix, so use a truly unknown prefix.
+    expect(canAccessPath("/totally-unknown-path", perms("admin"))).toBe(false);
   });
 
   it("empty permissions are denied on guarded routes", () => {

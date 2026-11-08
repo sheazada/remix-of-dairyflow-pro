@@ -27,18 +27,25 @@ export const Route = createFileRoute("/auth")({
 });
 
 // ── Dev quick-login constants ──────────────────────────────────────
-// Matches supabase/migrations/021_demo_login_accounts.sql
+// These are ONLY bundled in development builds. `import.meta.env.DEV`
+// is resolved at build time by Vite — the entire block is stripped from
+// production bundles, so demo credentials never ship to users.
+//
+// Matches supabase/migrations/022_fix_demo_accounts.sql
 // Password for ALL demo accounts: Admin@1234
-const DEV_PASSWORDS = ["Admin@1234"];
 
-const DEV_ACCOUNTS: { label: string; email: string }[] = [
-  { label: "Admin",     email: "admin@demo.dairyflow.app"    },
-  { label: "Manager",   email: "manager@demo.dairyflow.app"  },
-  { label: "Sales",     email: "sales@demo.dairyflow.app"    },
-  { label: "Driver",    email: "driver@demo.dairyflow.app"   },
-  { label: "Helper",    email: "helper@demo.dairyflow.app"   },
-  { label: "Retailer",  email: "retailer@demo.dairyflow.app" },
-];
+const DEV_PASSWORDS: string[] = import.meta.env.DEV ? ["Admin@1234"] : [];
+
+const DEV_ACCOUNTS: { label: string; email: string }[] = import.meta.env.DEV
+  ? [
+      { label: "Admin", email: "admin@demo.dairyflow.app" },
+      { label: "Manager", email: "manager@demo.dairyflow.app" },
+      { label: "Sales", email: "sales@demo.dairyflow.app" },
+      { label: "Driver", email: "driver@demo.dairyflow.app" },
+      { label: "Helper", email: "helper@demo.dairyflow.app" },
+      { label: "Retailer", email: "retailer@demo.dairyflow.app" },
+    ]
+  : [];
 
 /**
  * SECURITY FIX (Phase 1, Part B): After Supabase Auth signs in, we no longer
@@ -112,9 +119,14 @@ function LoginPage() {
         /* no session to clear */
       }
 
-      // SECURITY: pre-auth lookup goes through the narrow SECURITY DEFINER
-      // function get_login_account (returns only login-critical columns for
-      // one matched account) instead of an anonymous scan of public.users.
+      // SECURITY (Task 4): pre-auth lookup uses the SECURITY DEFINER RPC
+      // `get_login_account` (migration 017), which returns only the seven
+      // login-critical columns. The legacy fallback that selected `*` from
+      // public.users has been removed — it exposed sensitive columns and
+      // allowed account enumeration.
+      //
+      // If the RPC does not exist (migration 017 not applied), we fail
+      // closed with a generic error and log the misconfiguration.
       const lookupUser = async () => {
         const viaRpc = await (supabase as any)
           .rpc("get_login_account", {
@@ -122,12 +134,19 @@ function LoginPage() {
             _mobile: data.mobile ?? null,
           })
           .maybeSingle();
-        // Until migration 017 is applied the function doesn't exist yet;
-        // fall back to the legacy anonymous lookup so login never breaks.
-        if (viaRpc.error && /get_login_account|does not exist/i.test(viaRpc.error.message)) {
-          let q = (supabase as any).from("users").select("*");
-          q = data.email ? q.eq("email", data.email) : q.eq("mobile", data.mobile);
-          return await q.single();
+
+        if (viaRpc.error) {
+          // Treat RPC absence as a configuration error — do NOT fall back
+          // to an anonymous table scan, which would expose all user columns.
+          if (/get_login_account|does not exist|could not find/i.test(viaRpc.error.message)) {
+            console.error(
+              "[auth] get_login_account RPC is not deployed. " +
+              "Run supabase/migrations/017_security_hardening.sql.",
+            );
+            return { data: null, error: new Error("Login service unavailable. Contact support.") };
+          }
+          // Other errors (JWT / RLS) — retry once after signOut below.
+          return viaRpc;
         }
         return viaRpc;
       };
@@ -146,10 +165,10 @@ function LoginPage() {
         queryError = retry.error;
       }
 
+      // SECURITY: return a GENERIC message regardless of whether the
+      // account exists. This prevents email/mobile enumeration attacks.
       if (queryError || !users) {
-        const msg = queryError
-          ? `Account lookup failed: ${queryError.message}`
-          : "No account found for these details";
+        const msg = "Invalid email/mobile or password.";
         setError(msg);
         toast.error(msg);
         setIsLoading(false);
@@ -228,6 +247,15 @@ function LoginPage() {
   };
 
   const quickLogin = async (devEmail: string) => {
+    // SECURITY (Task 2): fail closed in production. The UI panel is also
+    // stripped from production bundles, but a direct invocation from the
+    // browser console must still be blocked.
+    if (!import.meta.env.DEV || DEV_PASSWORDS.length === 0 || DEV_ACCOUNTS.length === 0) {
+      setError("Quick login is not available in this environment.");
+      toast.error("Quick login is disabled in production.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -248,7 +276,7 @@ function LoginPage() {
       const authUser = result.data?.user;
       if (!authUser) throw new Error("No user returned");
 
-      // Resolve the public.users row and store session
+      // Resolve the public.users row and cache for UI
       const { data: fullUser } = await supabase
         .from("users")
         .select("*")
@@ -278,7 +306,7 @@ function LoginPage() {
         helper: "/deliveries",
         retailer: "/retailer/orders",
       };
-      const dashboard = roleDashboards[role] || "/dashboard";
+      const dashboard = roleDashboards[fullUser.role] || "/dashboard";
       navigate({ to: dashboard });
     } catch (err: any) {
       console.error("[quickLogin]", err);
@@ -425,35 +453,43 @@ function LoginPage() {
               Don't have an account? Contact your distributor administrator.
             </p>
 
-            {/* ── Dev quick-login panel ───────────────────────────────── */}
-            <div className="mt-6 rounded-lg border border-dashed border-amber-300 bg-amber-50 p-4 space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-xs font-semibold text-amber-900">Dev quick login</p>
-                  <p className="text-[11px] text-amber-800/80">
-                    One-click sign in per role. Shared password: <code className="font-mono text-amber-900">Demo@1234</code>
-                  </p>
+            {/* ── Dev quick-login panel ─────────────────────────────────
+             * Only rendered in development builds. `import.meta.env.DEV`
+             * is resolved at build time by Vite, so the entire block is
+             * stripped from production bundles (no demo credentials leak).
+             * ───────────────────────────────────────────────────────── */}
+            {import.meta.env.DEV && DEV_ACCOUNTS.length > 0 && (
+              <div className="mt-6 rounded-lg border border-dashed border-amber-300 bg-amber-50 p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-xs font-semibold text-amber-900">Dev quick login</p>
+                    <p className="text-[11px] text-amber-800/80">
+                      Development-only. One-click sign in per role.
+                      Password: <code className="font-mono text-amber-900">Admin@1234</code>
+                    </p>
+                  </div>
                 </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {DEV_ACCOUNTS.map((a) => (
+                    <Button
+                      key={a.email}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isLoading}
+                      className="text-xs"
+                      onClick={() => quickLogin(a.email)}
+                    >
+                      {a.label}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-amber-800/70">
+                  Provisioned by <code className="font-mono">supabase/migrations/022_fix_demo_accounts.sql</code>.
+                  Not available in production builds.
+                </p>
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                {DEV_ACCOUNTS.map((a) => (
-                  <Button
-                    key={a.email}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={isLoading}
-                    className="text-xs"
-                    onClick={() => quickLogin(a.email)}
-                  >
-                    {a.label}
-                  </Button>
-                ))}
-              </div>
-              <p className="text-[10px] text-amber-800/70">
-                For development only. Create these accounts via <code className="font-mono">supabase/migrations/011_demo_data.sql</code> or the SQL editor.
-              </p>
-            </div>
+            )}
           </CardContent>
         </Card>
 

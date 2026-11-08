@@ -16,6 +16,12 @@ dist-ssr
 .nitro
 *.local
 
+# Environment secrets
+.env
+.env.local
+.env.production
+.env.development
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
